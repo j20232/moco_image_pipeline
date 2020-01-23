@@ -26,6 +26,7 @@ COPY . .
 
 # pytorch
 RUN conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
+RUN conda install pillow=6.2.1
 
 RUN git submodule update --init --recursive
 WORKDIR /workspace

@@ -1,12 +1,12 @@
-version: '2.3'
+version: '2.4'
 services:
   python:
     build:
       context: ./
       dockerfile: ./docker/Dockerfile
-    image: nvidia/cuda
+    runtime: nvidia
     container_name: bengali
-    command: jupyter notebook --allow-root --port 8888 --ip 0.0.0.0
+    command: /bin/bash
     working_dir: /home
     tty: true
     environment:
