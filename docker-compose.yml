@@ -1,0 +1,18 @@
+version: '2.3'
+services:
+  python:
+    build:
+      context: ./
+      dockerfile: ./docker/Dockerfile
+    image: nvidia/cuda
+    container_name: bengali
+    command: jupyter notebook --allow-root --port 8888 --ip 0.0.0.0
+    working_dir: /home
+    tty: true
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PYTHON_PATH=/home
+    ports:
+      - 7999:8888
+    volumes:
+      - ./:/home
