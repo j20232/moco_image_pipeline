@@ -7,7 +7,7 @@ Pipeline codes for https://www.kaggle.com/c/bengaliai-cv19/overview
 Run the container
 
 ```
-sudo docker-compose build
+docker-compose build
 docker-compose up -d
 ```
 
