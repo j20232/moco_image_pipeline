@@ -1,5 +1,6 @@
 import os
 import zipfile
+import gc
 import numpy as np
 import cv2
 import pandas as pd
@@ -22,20 +23,22 @@ HEIGHT = 137
 
 
 if __name__ == "__main__":
+    gc.enable()
     print("INPUT_DIR: ", INPUT_DIR)
     train_df = pd.read_csv(INPUT_DIR / "train.csv")
     for zip_file in TRAIN_ZIPFILES:
         dir_name = zip_file.split(".")[0]
-        Path(TRAIN_DIR / dir_name).mkdir(parents=True, exist_ok=True)
+        Path(TRAIN_DIR).mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(INPUT_DIR / zip_file) as existing_zip:
-            parquet_file = TRAIN_DIR / "{}.parquet".format(dir_name)
+            parquet_file = INPUT_DIR / "{}.parquet".format(dir_name)
             if os.path.exists(parquet_file) is False:
-                existing_zip.extractall(TRAIN_DIR)
+                existing_zip.extractall(INPUT_DIR)
             img_df = pd.read_parquet(parquet_file)
             for idx in tqdm(range(len(img_df))):
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
                 img = (img0 * (255.0 / img0.max())).astype(np.uint8)
-                img = crop_and_resize_img(img, SIZE, HEIGHT, WIDTH)
-                name = img_df.ilock[idx, 0]
+                img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
+                name = img_df.iloc[idx, 0]
                 cv2.imwrite(str(TRAIN_DIR / f"{name}.png"), img)
-                assert False
+            del img_df
+            gc.collect()
