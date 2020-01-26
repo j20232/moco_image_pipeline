@@ -25,7 +25,6 @@ HEIGHT = 137
 if __name__ == "__main__":
     gc.enable()
     print("INPUT_DIR: ", INPUT_DIR)
-    train_df = pd.read_csv(INPUT_DIR / "train.csv")
     for zip_file in TRAIN_ZIPFILES:
         dir_name = zip_file.split(".")[0]
         Path(TRAIN_DIR).mkdir(parents=True, exist_ok=True)
