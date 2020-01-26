@@ -15,7 +15,7 @@ def crop_and_resize_img(img, size, max_width, max_height,
                         padding=16, line_threshold=80, noise_threshold=28):
     # crop a box around pixels larger than line_threshold
     # NOTE: some images contain line at the sides
-    xmin, xmax, ymin, ymax = calc_bounding_box(img[5:-5, 5:-5] > 80)
+    xmin, xmax, ymin, ymax = calc_bounding_box(img[5:-5, 5:-5] > line_threshold)
 
     # cropping may cut too much, so we need to add it back
     xmin = xmin - crop_width if (xmin > crop_width) else 0
