@@ -1,0 +1,32 @@
+[scripts]
+train = "pipenv run python ./pipeline/main.py"
+parquet = "pipenv run python ./pipeline/convert_parquet2png.py"
+
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+cython = "*"
+numba = "*"
+numpy = "*"
+scikit-learn = "*"
+matplotlib = "*"
+pandas = "*"
+scipy = "*"
+jupyter = "*"
+notebook = "*"
+torch = "*"
+torchvision = "*"
+pillow = "==6.2.0"
+pytorch-lightning = "*"
+opencv-python = "*"
+tqdm = "*"
+pathlib = "*"
+pyarrow = "*"
+
+[requires]
+python_version = "3.7"
