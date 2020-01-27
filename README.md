@@ -24,9 +24,9 @@ python src/main.py
 pipenv run [command] [INDEX]
 ```
 
-|competition|train|test|
-|:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_train|bengali_test|
+|competition|train|test|Script|
+|:-|:-|:-|:-|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_train|bengali_test|[Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|
 
 e.g.
 
