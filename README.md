@@ -23,3 +23,7 @@ python src/main.py
 ```
 pipenv run parquet
 ```
+
+## Special Thanks
+
+- https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch

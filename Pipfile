@@ -1,5 +1,5 @@
 [scripts]
-train = "pipenv run python ./pipeline/main.py"
+train = "pipenv run python ./pipeline/train.py"
 parquet = "pipenv run python ./pipeline/convert_parquet2png.py"
 
 [[source]]
@@ -27,6 +27,8 @@ opencv-python = "*"
 tqdm = "*"
 pathlib = "*"
 pyarrow = "*"
+pretrainedmodels = "*"
+yacs = "*"
 
 [requires]
 python_version = "3.7"
