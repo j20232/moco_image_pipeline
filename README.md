@@ -27,7 +27,13 @@ pipenv run parquet
 ### Train a model
 
 ```
-pipenv run train
+pipenv run train [INDEX]
+```
+
+e.g.
+
+```
+pipenv run train 0000
 ```
 
 ## Special Thanks
