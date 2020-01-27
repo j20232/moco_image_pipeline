@@ -2,6 +2,7 @@ gibo 2.2.3 by Simon Whitaker <sw@netcetera.org>
 https://github.com/simonwhitaker/gibo
 ### https://raw.github.com/github/gitignore//Python.gitignore
 
+.DS_Store
 input/*
 *.parquet
 *.zip
