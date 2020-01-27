@@ -24,9 +24,9 @@ python src/main.py
 pipenv run [command] [INDEX]
 ```
 
-|competition|train|test|Script|
-|:-|:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_train|bengali_test|[Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|
+|Competition|Train|Test|Script|Config|
+|:-|:-|:-|:-|:-|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_train|bengali_test|[Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/Bengali)|
 
 e.g.
 
@@ -36,7 +36,7 @@ pipenv run bengali_train 0000
 
 ### Tools
 
-|competition|command|meaning|
+|Competition|Command|Meaning|
 |:-|:-|:-|
 |[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_parquet|To create image dataset|
 
