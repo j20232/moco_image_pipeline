@@ -10,7 +10,7 @@ import pytorch_lightning as pl
 from models import PretrainedCNN
 
 
-class MocoModule(pl.LightningModule):
+class BengaliModule(pl.LightningModule):
 
     def __init__(self):
         super(MocoModule, self).__init__()

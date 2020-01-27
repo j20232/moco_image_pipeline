@@ -1,6 +1,6 @@
 
-from moco_module import MocoModule
+from bengali_module import BengaliModule
 
 if __name__ == "__main__":
-    moco = MocoModule()
-    print(moco)
+    bengali = BengaliModule()
+    print(bengali)
