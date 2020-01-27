@@ -34,6 +34,8 @@ e.g.
 pipenv run bengali_train 0000
 ```
 
+If you don't use Pipenv, you can get the definition of the commands from [Pipfile](https://github.com/j20232/bengali/blob/master/Pipfile).
+
 ### Tools
 
 |Competition|Command|Meaning|
