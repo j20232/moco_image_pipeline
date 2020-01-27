@@ -24,6 +24,12 @@ python src/main.py
 pipenv run parquet
 ```
 
+### Train a model
+
+```
+pipenv run train
+```
+
 ## Special Thanks
 
 - https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch
