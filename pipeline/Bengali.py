@@ -10,10 +10,10 @@ from pipeline.models import PretrainedCNN
 from pipeline.functions import accuracy
 
 
-class BengaliModule(pl.LightningModule):
+class Bengali(pl.LightningModule):
 
     def __init__(self, cfg):
-        super(BengaliModule, self).__init__()
+        super(Bengali, self).__init__()
         self.cfg = cfg
         self.n_total_class = self.cfg.N_GRAPHEME + self.cfg.N_VOWEL + self.cfg.N_CONSONANT
         print('n_total', self.n_total_class)

@@ -1,6 +1,6 @@
 [scripts]
-train = "pipenv run python ./pipeline/train.py"
-parquet = "pipenv run python ./pipeline/convert_parquet2png.py"
+bengali_train = "pipenv run python ./pipeline/train.py Bengali"
+bengali_parquet = "pipenv run python ./pipeline/convert_parquet2png.py"
 
 [[source]]
 name = "pypi"
