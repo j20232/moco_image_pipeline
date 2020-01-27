@@ -7,7 +7,7 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 
 import pytorch_lightning as pl
-from models import PretrainedCNN
+from pipeline.models import PretrainedCNN
 
 
 class BengaliModule(pl.LightningModule):

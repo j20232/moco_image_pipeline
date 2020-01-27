@@ -3,7 +3,7 @@ import numpy as np
 from dataset_mix_in import DatasetMixin
 
 
-class BengaliDataset(DatasetMixin):
+class SimpleDataset(DatasetMixin):
     def __init__(self, images, labels=None, transform=None, indices=None):
         super(BengaliAIDataset, self).__init__(transform=transform)
         self.images = images
