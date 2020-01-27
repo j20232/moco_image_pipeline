@@ -39,3 +39,4 @@ pipenv run train 0000
 ## Special Thanks
 
 - https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch
+- https://github.com/Ririverce/neural-network-pytorch
