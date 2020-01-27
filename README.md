@@ -1,6 +1,6 @@
-# bengali
+# Moco Image Pipeline
 ## About
-Pipeline codes for https://www.kaggle.com/c/bengaliai-cv19/overview
+Pipeline codes for image tasks
 
 ## Quick Start
 
