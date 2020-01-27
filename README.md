@@ -18,23 +18,28 @@ docker exec -it bengali bash
 python src/main.py
 ```
 
-### Create images
+### Commands
 
 ```
-pipenv run parquet
+pipenv run [command] [INDEX]
 ```
 
-### Train a model
-
-```
-pipenv run train [INDEX]
-```
+|competition|train|test|
+|:-|:-|:-|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_train|bengali_test|
 
 e.g.
 
 ```
-pipenv run train 0000
+pipenv run bengali_train 0000
 ```
+
+### Tools
+
+|competition|command|meaning|
+|:-|:-|:-|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_parquet|To create image dataset|
+
 
 ## Special Thanks
 
