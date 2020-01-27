@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
+from yacs.config import CfgNode as CN
+
 import torch
+import torch.optim
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
-import torch.optim
 from torchvision import transforms
 import pytorch_lightning as pl
 
@@ -10,11 +13,34 @@ from pipeline.models import PretrainedCNN
 from pipeline.functions import accuracy
 
 
+# default settings
+_C = CN()
+_C.N_GRAPHEME = 160
+_C.N_VOWEL = 11
+_C.N_CONSONANT = 7
+_C.MODEL = "se_resnext50_32x4d"
+_C.PRETRAINED = "null"
+_C.NN = CN()
+_C.NN.OPTIM_NAME = "Adam"
+_C.NN.OPTIM_PARAMS = []
+_C.NN.SCHEDULER_NAME = "ReduceLROnPlateau"
+_C.NN.SCHEDULER_PARAMS = []
+
+
+def get_cfg():
+    return _C.clone()
+
 class Bengali(pl.LightningModule):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg_dir, index):
         super(Bengali, self).__init__()
-        self.cfg = cfg
+
+        # read cfg
+        self.cfg = get_cfg()
+        yaml_path = Path(".").resolve() / "config" / cfg_dir / f"{index}.yaml"
+        self.cfg.merge_from_file(yaml_path)
+        self.cfg.freeze()
+
         self.n_total_class = self.cfg.N_GRAPHEME + self.cfg.N_VOWEL + self.cfg.N_CONSONANT
         print('n_total', self.n_total_class)
 
