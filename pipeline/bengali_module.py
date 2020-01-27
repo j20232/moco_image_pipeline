@@ -13,7 +13,7 @@ from models import PretrainedCNN
 class BengaliModule(pl.LightningModule):
 
     def __init__(self):
-        super(MocoModule, self).__init__()
+        super(BengaliModule, self).__init__()
         n_grapheme = 168
         n_vowel = 11
         n_consonant = 7
