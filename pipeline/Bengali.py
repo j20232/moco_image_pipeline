@@ -45,7 +45,6 @@ def get_cfg():
 class Bengali(pl.LightningModule):
 
     def __init__(self, cfg_dir, index):
-        # TODO: change here hparams
         super(Bengali, self).__init__()
         # read cfg
         self.cfg = get_cfg()
@@ -62,6 +61,7 @@ class Bengali(pl.LightningModule):
         self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class,
                                    model_name=self.cfg.MODEL,
                                    pretrained=pretrained)
+        self.model.hparams = self.cfg
         # TODO: Implement the function to read trained model here
 
         # TODO: define how to split data

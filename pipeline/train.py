@@ -3,7 +3,7 @@ import importlib
 import mlflow
 import mlflow.pytorch
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     model = getattr(modulelib, cfg_dir)(cfg_dir, index)
 
     # training
-    early_stop_callback = EarlyStopping(patience=parser.parse_args().early_stopping_rounds)
+    early_stop_callback = EarlyStopping(patience=parser.parse_args().early_stopping_rounds,)
     if parser.parse_args().use_cpu:
         trainer = Trainer(max_epochs=parser.parse_args().epochs,
                           train_percent_check=0.1,
