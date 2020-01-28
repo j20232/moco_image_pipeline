@@ -5,6 +5,7 @@ https://github.com/simonwhitaker/gibo
 .DS_Store
 input/*
 mlruns/*
+lightning_logs/*
 *.parquet
 *.zip
 
