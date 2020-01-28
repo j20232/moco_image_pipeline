@@ -1,1 +1,1 @@
-from .accuracy import accuracy
+from .metrics import accuracy

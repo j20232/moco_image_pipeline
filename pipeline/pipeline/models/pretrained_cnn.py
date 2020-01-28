@@ -9,7 +9,7 @@ from .blocks import LinearBlock
 
 class PretrainedCNN(nn.Module):
     def __init__(self, model_name='se_resnext101_32x4d',
-                 in_channels=1, out_dim=10, hdim=512,
+                 in_channels=3, out_dim=10, hdim=512,
                  use_bn=True, pretrained='imagenet'):
         super(PretrainedCNN, self).__init__()
         self.conv0 = nn.Conv2d(

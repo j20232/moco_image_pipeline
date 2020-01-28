@@ -7,10 +7,11 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
+from torchvision import transforms
 import pytorch_lightning as pl
 
 from pipeline.datasets import SimpleDataset
-from pipeline.functions import accuracy
+from pipeline.functions.metrics import accuracy
 from pipeline.models import PretrainedCNN
 from pipeline.utils.seed import seed_everything
 
@@ -57,7 +58,7 @@ class Bengali(pl.LightningModule):
         if pretrained == "null":
             pretrained = None
         self.n_total_class = GRAPH + VOWEL + CONSO
-        self.model = PretrainedCNN(in_channels=1, out_dim=self.n_total_class,
+        self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class,
                                    model_name=self.cfg.MODEL,
                                    pretrained=pretrained)
         # TODO: Implement the function to read trained model here
@@ -68,29 +69,36 @@ class Bengali(pl.LightningModule):
         self.valid_df = train_df
 
     def forward(self, x):
-        self.model(x)
+        return self.model(x)
 
     def calc_loss(self, batch, prefix="train"):
         x, y = batch
-        pred = self.forward(x)
-        if isinstance(preds, tuple):
-            assert len(preds) == 3
-            preds = pred
-        else:
-            assert pred.shape[1] == self.n_total_class
-            preds = torch.split(pred, [GRAPH, VOWEL, CONSO], dim=1)
+        preds = self.forward(x)
+        if isinstance(preds, tuple) is False:
+            preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+        print(preds[0].shape)
+        print(y[:, 0].shape)
+        print(preds[1].shape)
+        print(y[:, 1].shape)
+        print(preds[2].shape)
+        print(y[:, 0].shape)
         loss_grapheme = F.cross_entropy(preds[0], y[:, 0])
         loss_vowel = F.cross_entropy(preds[1], y[:, 1])
         loss_consonant = F.cross_entropy(preds[2], y[:, 2])
         loss = loss_grapheme + loss_vowel + loss_consonant
+
+        # acc_grapheme = accuracy(preds[0], y[:, 0])
+        # acc_vowel = accuracy(preds[1], y[:, 1])
+        # acc_consonant = accuracy(preds[2], y[:, 2])
+
         logger_logs = {
-            "{}_loss".format(prefix): loss.item(),
-            "{}_loss_grapheme".format(prefix): loss_grapheme.item(),
-            "{}_loss_vowel".format(prefix): loss_vowel.item(),
-            "{}_loss_consonant".format(prefix): loss_consonant.item(),
-            "{}_acc_grapheme".format(prefix): accuracy(preds[0], y[:, 0]),
-            "{}_acc_vowel".format(prefix): accuracy(preds[1], y[:, 1]),
-            "{}_acc_consonant".format(prefix): accuracy(preds[2], y[:, 2])
+            "{}_loss".format(prefix): loss,
+            "{}_loss_grapheme".format(prefix): loss_grapheme,
+            "{}_loss_vowel".format(prefix): loss_vowel,
+            "{}_loss_consonant".format(prefix): loss_consonant,
+            "{}_acc_grapheme".format(prefix): acc_grapheme,
+            "{}_acc_vowel".format(prefix): acc_vowel,
+            "{}_acc_consonant".format(prefix): acc_consonant
         }
         return loss, logger_logs
 
@@ -138,15 +146,19 @@ class Bengali(pl.LightningModule):
     def train_dataloader(self):
         paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in self.train_df["image_id"].values]
         labels = self.train_df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
-        return DataLoader(SimpleDataset(paths, labels, transform=None), batch_size=self.cfg.BS)
+        # TODO: Implement augmentation methods
+        return DataLoader(SimpleDataset(paths, labels, transform=transforms.ToTensor()),
+                          batch_size=self.cfg.BS, shuffle=True)
 
     @pl.data_loader
     def val_dataloader(self):
         paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in self.valid_df["image_id"].values]
         labels = self.valid_df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
-        return DataLoader(SimpleDataset(paths, labels, transform=None), batch_size=self.cfg.BS)
+        return DataLoader(SimpleDataset(paths, labels, transform=transforms.ToTensor()),
+                          batch_size=self.cfg.BS)
 
     @pl.data_loader
     def test_dataloader(self):
         paths = [x for x in TEST_IMG_PATH.glob("*.png")]
-        return DataLoader(SimpleDataset(paths, transform=None), batch_size=self.cfg.BS)
+        return DataLoader(SimpleDataset(paths, transform=transforms.ToTensor()),
+                          batch_size=self.cfg.BS)
