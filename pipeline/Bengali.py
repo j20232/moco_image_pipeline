@@ -28,7 +28,7 @@ _C.SCH_N = "ReduceLROnPlateau"
 _C.SCH_P = []
 
 # Const
-GRAPH = 160
+GRAPH = 168
 VOWEL=11
 CONSO = 7
 ROOT_PATH = Path(".").resolve()
@@ -45,6 +45,7 @@ def get_cfg():
 class Bengali(pl.LightningModule):
 
     def __init__(self, cfg_dir, index):
+        # TODO: change here hparams
         super(Bengali, self).__init__()
         # read cfg
         self.cfg = get_cfg()
@@ -65,8 +66,8 @@ class Bengali(pl.LightningModule):
 
         # TODO: define how to split data
         train_df = pd.read_csv(TRAIN_CSV_PATH)
-        self.train_df = train_df
-        self.valid_df = train_df
+        self.train_df = train_df.head(64)
+        self.valid_df = train_df.head(64)
 
     def forward(self, x):
         return self.model(x)
@@ -76,21 +77,14 @@ class Bengali(pl.LightningModule):
         preds = self.forward(x)
         if isinstance(preds, tuple) is False:
             preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
-        print(preds[0].shape)
-        print(y[:, 0].shape)
-        print(preds[1].shape)
-        print(y[:, 1].shape)
-        print(preds[2].shape)
-        print(y[:, 0].shape)
         loss_grapheme = F.cross_entropy(preds[0], y[:, 0])
         loss_vowel = F.cross_entropy(preds[1], y[:, 1])
         loss_consonant = F.cross_entropy(preds[2], y[:, 2])
         loss = loss_grapheme + loss_vowel + loss_consonant
 
-        # acc_grapheme = accuracy(preds[0], y[:, 0])
-        # acc_vowel = accuracy(preds[1], y[:, 1])
-        # acc_consonant = accuracy(preds[2], y[:, 2])
-
+        acc_grapheme = accuracy(preds[0], y[:, 0])
+        acc_vowel = accuracy(preds[1], y[:, 1])
+        acc_consonant = accuracy(preds[2], y[:, 2])
         logger_logs = {
             "{}_loss".format(prefix): loss,
             "{}_loss_grapheme".format(prefix): loss_grapheme,
@@ -112,7 +106,7 @@ class Bengali(pl.LightningModule):
         
     def validation_end(self, outputs):
         avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
-        avg_loss_grapheme = torch.stack([x["val_loss_grapeme"] for x in outputs]).mean()
+        avg_loss_grapheme = torch.stack([x["val_loss_grapheme"] for x in outputs]).mean()
         avg_loss_vowel = torch.stack([x["val_loss_vowel"] for x in outputs]).mean()
         avg_loss_consonant = torch.stack([x["val_loss_consonant"] for x in outputs]).mean()
         avg_acc_grapheme = torch.stack([x["val_acc_grapheme"] for x in outputs]).mean()
@@ -140,7 +134,7 @@ class Bengali(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = getattr(optim, self.cfg.OPT_N)(self.model.parameters(), **self.cfg.OPT_P[0])
         scheduler = getattr(lr_scheduler, self.cfg.SCH_N)(optimizer, **self.cfg.SCH_P[0])
-        return optimizer, scheduler
+        return [optimizer], [scheduler]
 
     @pl.data_loader
     def train_dataloader(self):
