@@ -29,6 +29,7 @@ pathlib = "*"
 pyarrow = "*"
 pretrainedmodels = "*"
 yacs = "*"
+mlflow = "*"
 
 [requires]
 python_version = "3.7"

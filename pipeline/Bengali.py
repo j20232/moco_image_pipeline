@@ -1,30 +1,41 @@
-import os
+import pandas as pd
 from pathlib import Path
 from yacs.config import CfgNode as CN
 
 import torch
-import torch.optim
+import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
-from torchvision import transforms
 import pytorch_lightning as pl
 
-from pipeline.models import PretrainedCNN
+from pipeline.datasets import SimpleDataset
 from pipeline.functions import accuracy
+from pipeline.models import PretrainedCNN
+from pipeline.utils.seed import seed_everything
 
 
-# default settings
+# Default settings
 _C = CN()
-_C.N_GRAPHEME = 160
-_C.N_VOWEL = 11
-_C.N_CONSONANT = 7
+_C.SEED = 1116
+_C.BS = 32
 _C.MODEL = "se_resnext50_32x4d"
 _C.PRETRAINED = "null"
-_C.NN = CN()
-_C.NN.OPTIM_NAME = "Adam"
-_C.NN.OPTIM_PARAMS = []
-_C.NN.SCHEDULER_NAME = "ReduceLROnPlateau"
-_C.NN.SCHEDULER_PARAMS = []
+_C.OPT_N = "Adam"
+_C.OPT_P = []
+_C.SCH_N = "ReduceLROnPlateau"
+_C.SCH_P = []
+
+# Const
+GRAPH = 160
+VOWEL=11
+CONSO = 7
+ROOT_PATH = Path(".").resolve()
+CONFIG_PATH = ROOT_PATH / "config"
+TRAIN_CSV_PATH = ROOT_PATH / "input" / "train.csv"
+TRAIN_IMG_PATH = ROOT_PATH / "input" / "train_images"
+TEST_IMG_PATH = ROOT_PATH / "input" / "test_images"
+SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
 
 
 def get_cfg():
@@ -34,24 +45,27 @@ class Bengali(pl.LightningModule):
 
     def __init__(self, cfg_dir, index):
         super(Bengali, self).__init__()
-
         # read cfg
         self.cfg = get_cfg()
-        yaml_path = Path(".").resolve() / "config" / cfg_dir / f"{index}.yaml"
+        yaml_path = CONFIG_PATH / cfg_dir / f"{index}.yaml"
         self.cfg.merge_from_file(yaml_path)
         self.cfg.freeze()
-
-        self.n_total_class = self.cfg.N_GRAPHEME + self.cfg.N_VOWEL + self.cfg.N_CONSONANT
-        print('n_total', self.n_total_class)
+        seed_everything(self.cfg.SEED)
 
         # Set pretrained='imagenet' to download imagenet pretrained model...
         pretrained = self.cfg.PRETRAINED
         if pretrained == "null":
             pretrained = None
+        self.n_total_class = GRAPH + VOWEL + CONSO
         self.model = PretrainedCNN(in_channels=1, out_dim=self.n_total_class,
                                    model_name=self.cfg.MODEL,
                                    pretrained=pretrained)
         # TODO: Implement the function to read trained model here
+
+        # TODO: define how to split data
+        train_df = pd.read_csv(TRAIN_CSV_PATH)
+        self.train_df = train_df
+        self.valid_df = train_df
 
     def forward(self, x):
         self.model(x)
@@ -64,9 +78,7 @@ class Bengali(pl.LightningModule):
             preds = pred
         else:
             assert pred.shape[1] == self.n_total_class
-            preds = torch.split(pred,
-                                [self.cfg.N_GRAPHEME, self.cfg.N_VOWEL, self.cfg.N_CONSONANT],
-                                dim=1)
+            preds = torch.split(pred, [GRAPH, VOWEL, CONSO], dim=1)
         loss_grapheme = F.cross_entropy(preds[0], y[:, 0])
         loss_vowel = F.cross_entropy(preds[1], y[:, 1])
         loss_consonant = F.cross_entropy(preds[2], y[:, 2])
@@ -81,7 +93,6 @@ class Bengali(pl.LightningModule):
             "{}_acc_consonant".format(prefix): accuracy(preds[2], y[:, 2])
         }
         return loss, logger_logs
-
 
     def training_step(self, batch, batch_idx):
         loss, logger_logs = self.calc_loss(batch)
@@ -111,38 +122,31 @@ class Bengali(pl.LightningModule):
         return {"avg_val_loss": avg_loss, "log": logs}
 
     def test_step(self, batch, batch_idx):
-        # TODO Implement here
+        print("test_step")
         x, y = batch
         y_hat = self.forward(x)
 
     def test_end(self, outputs):
-        # TODO Implement here
-        pass
+        print("test_end")
 
     def configure_optimizers(self):
-        tmp = self.cfg.NN.OPTIM_PARAMS[0]
-        for d in self.cfg.NN.OPTIM_PARAMS:
-            tmp.update(**d)
-        optimizer = getattr(torch.optim, self.cfg.NN.OPTIM_NAME)(self.model.parameters(), **tmp)
-
-        tmp = self.cfg.NN.SCHEDULER_PARAMS[0]
-        for d in self.cfg.NN.SCHEDULER_PARAMS:
-            tmp.update(**d)
-        scheduler = getattr(torch.optim.lr_scheduler, self.cfg.NN.SCHEDULER_NAME)(self.optimizer, **tmp)
+        optimizer = getattr(optim, self.cfg.OPT_N)(self.model.parameters(), **self.cfg.OPT_P[0])
+        scheduler = getattr(lr_scheduler, self.cfg.SCH_N)(optimizer, **self.cfg.SCH_P[0])
         return optimizer, scheduler
 
     @pl.data_loader
     def train_dataloader(self):
-        # TODO: Implement here
-        pass
+        paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in self.train_df["image_id"].values]
+        labels = self.train_df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
+        return DataLoader(SimpleDataset(paths, labels, transform=None), batch_size=self.cfg.BS)
 
     @pl.data_loader
     def val_dataloader(self):
-        # TODO: Implement here
-        pass
+        paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in self.valid_df["image_id"].values]
+        labels = self.valid_df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
+        return DataLoader(SimpleDataset(paths, labels, transform=None), batch_size=self.cfg.BS)
 
     @pl.data_loader
     def test_dataloader(self):
-        # TODO: Implement here
-        pass
-
+        paths = [x for x in TEST_IMG_PATH.glob("*.png")]
+        return DataLoader(SimpleDataset(paths, transform=None), batch_size=self.cfg.BS)

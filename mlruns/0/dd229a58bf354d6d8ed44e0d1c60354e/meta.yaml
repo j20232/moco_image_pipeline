@@ -1,0 +1,15 @@
+artifact_uri: file:///media/mocobt/Volume/Kaggle/bengali/mlruns/0/dd229a58bf354d6d8ed44e0d1c60354e/artifacts
+end_time: 1580212362358
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: dd229a58bf354d6d8ed44e0d1c60354e
+run_uuid: dd229a58bf354d6d8ed44e0d1c60354e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1580212362320
+status: 4
+tags: []
+user_id: mocobt

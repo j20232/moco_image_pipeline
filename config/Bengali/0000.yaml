@@ -1,10 +1,9 @@
-NN:
-  OPTIM_NAME: "Adam"
-  OPTIM_PARAMS:
-    - lr: 0.001
-  SCHEDULER_NAME: "ReduceLROnPlateau"
-  SCHEDULER_PARAMS:
-    - mode: "min"
-    - factor: 0.7
-    - patience: 5
-    - min_lr: 1e-10
+OPT_N: "Adam"
+OPT_P:
+  - lr: 0.001
+SCH_N: "ReduceLROnPlateau"
+SCH_P:
+  - mode: "min"
+    factor: 0.7
+    patience: 5
+    min_lr: 1e-10

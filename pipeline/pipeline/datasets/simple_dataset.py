@@ -1,31 +1,23 @@
 import numpy as np
+import cv2
+from torch.utils.data.dataset import Dataset
 
-from dataset_mix_in import DatasetMixin
 
-
-class SimpleDataset(DatasetMixin):
-    def __init__(self, images, labels=None, transform=None, indices=None):
-        super(BengaliAIDataset, self).__init__(transform=transform)
-        self.images = images
+class SimpleDataset(Dataset):
+    def __init__(self, paths, labels=None, transform=None):
+        self.paths = paths
         self.labels = labels
-        if indices is None:
-            indices = np.arange(len(images))
-        self.indices = indices
-        self.train = labels is not None
+        self.is_train = False if self.labels is None else True
+        self.transform = transform
 
     def __len__(self):
-        """return length of this dataset"""
-        return len(self.indices)
+        return len(self.paths)
 
-    def get_example(self, i):
-        """Return i-th data"""
-        i = self.indices[i]
-        x = self.images[i]
-        # Opposite white and black: background will be white and
-        # for future Affine transformation
-        x = (255 - x).astype(np.float32) / 255.
-        if self.train:
-            y = self.labels[i]
-            return x, y
-        else:
-            return x
+    def __getitem__(self, i):
+        x = cv2.imread(str(self.paths[i]))
+        # x = (255 - x).astype(np.float32) / 255.
+        x = x.astype(np.float32) / 255.
+        if self.transform:
+            x = self.transform(x)
+        return x, self.labels[i] if self.is_train else x
+
