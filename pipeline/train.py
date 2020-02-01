@@ -43,7 +43,7 @@ def main():
 
     # training
     modulelib = importlib.import_module(cfg_dir)
-    classifier = getattr(modulelib, cfg_dir)(cfg)
+    classifier = getattr(modulelib, cfg_dir)(cfg_dir, index, cfg)
     model, best_results, final_epoch = classifier.fit()
 
     # logging
