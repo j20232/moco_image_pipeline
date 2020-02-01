@@ -42,6 +42,20 @@ If you don't use Pipenv, you can get the definition of the commands from [Pipfil
 tensorboard --log_dir logs/COMPETITION/INDEX
 ```
 
+### MLFlow
+
+- Remote
+
+```
+mlflow server -h [ip] -p [port]
+```
+
+- local
+
+```
+pipenv run local_mlflow
+```
+
 ### Tools
 
 |Competition|Command|Meaning|
