@@ -61,15 +61,15 @@ class Bengali():
         best_results = {"loss": 10000000}
         early_stopping_count = 0
         final_epoch = 0
-        results_train = {"loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
-                         "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
-        results_valid = results_train
         Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
         save_path = LOG_PATH / self.competition_name / self.index
         if save_path.exists():
             shutil.rmtree(str(save_path))
         writer = SummaryWriter(log_dir=str(save_path))
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
+            results_train = {"loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
+                             "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
+            results_valid = results_train
             final_epoch += 1
             self.scheduler.step()
             results_train = self.train_one_epoch(results_train)
