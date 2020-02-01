@@ -1,6 +1,7 @@
 import copy
 import pandas as pd
 import shutil
+import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 
@@ -12,6 +13,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
+import pipeline.augmentation as aug
 from pipeline.datasets import SimpleDataset
 from pipeline.functions.metrics import accuracy
 from pipeline.models import PretrainedCNN
@@ -28,6 +30,14 @@ TRAIN_CSV_PATH = ROOT_PATH / "input" / "train.csv"
 TRAIN_IMG_PATH = ROOT_PATH / "input" / "train_images"
 TEST_IMG_PATH = ROOT_PATH / "input" / "test_images"
 SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
+
+
+class Normalizer():
+    def __init__(self):
+        pass
+
+    def __call__(self, img):
+        return (img.astype(np.float32) - 0.0692) / 0.2051
 
 
 class Bengali():
@@ -172,8 +182,16 @@ class Bengali():
         # Train if is_train else Valid
         paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in df["image_id"].values]
         labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
-        # TODO: Implement augmentation methods
-        return DataLoader(SimpleDataset(paths, labels, transform=transforms.ToTensor()),
+        tfms = []
+        for tfm_dict in self.cfg["transform"]:
+            name, params = tfm_dict["name"], tfm_dict["params"]
+            if name in aug.modules:
+                tfms.append(getattr(aug, name)(**params))
+            else:
+                tfms.append(getattr(transforms, name)(**params))    # torchvision.transforms
+        tfms.append(Normalizer())   # dirty
+        tfms.append(transforms.ToTensor())
+        return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)
 
     def get_test_dataloader(self):

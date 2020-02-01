@@ -1,5 +1,5 @@
 import numpy as np
-import albumenization as A
+import albumentations as A
 
 
 def apply_aug(aug, image):
@@ -32,7 +32,7 @@ class RandomNoise():
 
     def __call__(self, img):
         if np.random.uniform() < self.prob:
-            img = apply_aug(A.GaussianNoise(var_limit=self.var_limit / 255., p=1.0), img)
+            img = apply_aug(A.GaussNoise(var_limit=self.var_limit / 255., p=1.0), img)
         else:
             img = apply_aug(A.MultiplicativeNoise(p=1.0), img)
         return img
