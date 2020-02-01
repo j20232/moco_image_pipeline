@@ -23,6 +23,7 @@ CONSO = 7
 ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
 LOG_PATH = ROOT_PATH / "logs"
+MODEL_PATH = ROOT_PATH / "models"
 TRAIN_CSV_PATH = ROOT_PATH / "input" / "train.csv"
 TRAIN_IMG_PATH = ROOT_PATH / "input" / "train_images"
 TEST_IMG_PATH = ROOT_PATH / "input" / "test_images"
@@ -31,7 +32,7 @@ SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
 
 class Bengali():
 
-    def __init__(self, name, index, cfg):
+    def __init__(self, name, index, cfg, is_train=True):
         super(Bengali, self).__init__()
         self.competition_name = name
         self.index = index
@@ -40,13 +41,13 @@ class Bengali():
         self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class,
                                    model_name=self.cfg["model"]["name"],
                                    pretrained=self.cfg["model"]["pretrained"])
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        if is_train is False:
+            return
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
         self.scheduler = getattr(lr_scheduler, self.cfg["scheduler"]["name"])(
             self.optimizer, **self.cfg["scheduler"]["params"][0])
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-        # TODO: Implement the function to read trained model here
 
         # TODO: define how to split data
         train_df = pd.read_csv(TRAIN_CSV_PATH)
@@ -117,6 +118,9 @@ class Bengali():
                                 "train_consonant": results_train["acc_consonant"],
                                 "valid_consonant": results_valid["acc_consonant"]}, ep)
         self.model.load_state_dict(best_model_weight)
+        competition_model_path = MODEL_PATH / self.competition_name
+        competition_model_path.mkdir(parents=True, exist_ok=True)
+        torch.save(best_model_weight, str(competition_model_path / f"{self.index}.pth"))
         self.model = self.model.to("cpu")
         writer.close()
         return self.model, best_results, final_epoch
