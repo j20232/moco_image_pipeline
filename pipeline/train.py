@@ -37,7 +37,7 @@ def main():
         for key, value in cfg.items():
             if type(value) is dict:
                 for k, v in value.items():
-                    mlflow.log_param("{}: {}".format(key, k), v)
+                    mlflow.log_param("{}/{}".format(key, k), v)
             else:
                 mlflow.log_param(key, value)
         mlflow.log_param("final_epoch", final_epoch)
