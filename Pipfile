@@ -30,6 +30,7 @@ pyarrow = "*"
 pretrainedmodels = "*"
 mlflow = "*"
 pyyaml = "*"
+albumentations = "*"
 
 [requires]
 python_version = "3.7"
