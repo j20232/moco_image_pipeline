@@ -34,7 +34,7 @@ class PretrainedCNN(nn.Module):
         else:
             # [128, 2048, 4, 4] when input is (128, 128)
             bs, ch, height, width = h.shape
-            h = h.view(bs, ch*height*width)
+            h = h.view(bs, ch * height * width)
         for layer in self.lin_layers:
             h = layer(h)
         return h

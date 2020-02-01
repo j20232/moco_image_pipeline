@@ -41,7 +41,7 @@ def affine_image(img, min_scale=0.8, max_scale=1.2, max_rot_angle=7, max_shear_a
     return transformed_image
 
 
-def crop_char_image(image, threshold=5./255.):
+def crop_char_image(image, threshold=5. / 255.):
     assert image.ndim == 2
     is_black = image > threshold
 

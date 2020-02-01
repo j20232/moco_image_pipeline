@@ -20,4 +20,3 @@ class SimpleDataset(Dataset):
         if self.transform:
             x = self.transform(x)
         return x, self.labels[i] if self.is_train else x
-

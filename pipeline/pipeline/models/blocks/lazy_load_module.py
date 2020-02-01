@@ -1,7 +1,7 @@
 from typing import List
 import torch
 from torch import nn
-from torch.nn.parameter import Parameter 
+from torch.nn.parameter import Parameter
 
 
 class LazyLoadModule(nn.Module):
@@ -27,10 +27,9 @@ class LazyLoadModule(nn.Module):
         self._register_load_state_dict_pre_hook(self._hook)
 
     def _hook(self, state_dict, prefix, local_metadata, strict, missing_keys,
-             unexpected_keys, error_msgs):
+              unexpected_keys, error_msgs):
         for key in self._lazy_buffer_keys:
             self.register_buffer(key, state_dict[prefix + key])
 
         for key in self._lazy_parameter_keys:
             self.register_parameter(key, Parameter(state_dict[prefix + key]))
-

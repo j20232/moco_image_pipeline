@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from .lazy_linear import LazyLinear
 
 
 def residual_add(lhs, rhs):
@@ -12,6 +13,7 @@ def residual_add(lhs, rhs):
     else:
         out = lhs + rhs
     return out
+
 
 class LinearBlock(nn.Module):
 
