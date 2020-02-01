@@ -13,6 +13,7 @@ from torchvision import transforms
 from pipeline.datasets import SimpleDataset
 from pipeline.functions.metrics import accuracy
 from pipeline.models import PretrainedCNN
+from pipeline.utils.train_utils import show_logs
 
 GRAPH = 168
 VOWEL = 11
@@ -44,30 +45,36 @@ class Bengali():
 
         # TODO: define how to split data
         train_df = pd.read_csv(TRAIN_CSV_PATH)
-        df = train_df.head(64)
+        df = train_df.head(10)
         self.train_loader = self.get_train_dataloader(df, True)
-        df = train_df.head(64)
+        df = train_df.head(10)
         self.valid_loader = self.get_train_dataloader(df, False)
 
     def fit(self):
         self.model = self.model.to(self.device)
         best_model_weight = copy.deepcopy(self.model.state_dict())
-        best_params = {"loss": 10000000}
+        best_results = {"loss": 10000000}
         early_stopping_count = 0
+        final_epoch = 0
+        train_logs = []
+        valid_logs = []
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
+            final_epoch += 1
             self.scheduler.step()
             results_train = self.train_one_epoch()
             results_valid = self.valid_one_epoch()
-            self.show_logs(ep, results_train, results_valid)
-            if results_valid["loss"] > best_params["loss"]:
-                best_params["loss"] = results_valid["loss"]
-                best_params["loss_grapheme"] = results_valid["loss_grapheme"]
-                best_params["loss_vowel"] = results_valid["loss_vowel"]
-                best_params["loss_consonant"] = results_valid["loss_consonant"]
-                best_params["acc"] = results_valid["acc"]
-                best_params["acc_grapheme"] = results_valid["acc_grapheme"]
-                best_params["acc_vowel"] = results_valid["acc_vowel"]
-                best_params["acc_consonant"] = results_valid["acc_consonant"]
+            train_logs.append(results_train)
+            valid_logs.append(results_valid)
+            show_logs(self.cfg, ep, results_train, results_valid)
+            if results_valid["loss"] < best_results["loss"]:
+                best_results["loss"] = results_valid["loss"]
+                best_results["loss_grapheme"] = results_valid["loss_grapheme"]
+                best_results["loss_vowel"] = results_valid["loss_vowel"]
+                best_results["loss_consonant"] = results_valid["loss_consonant"]
+                best_results["acc"] = results_valid["acc"]
+                best_results["acc_grapheme"] = results_valid["acc_grapheme"]
+                best_results["acc_vowel"] = results_valid["acc_vowel"]
+                best_results["acc_consonant"] = results_valid["acc_consonant"]
                 best_model_weight = copy.deepcopy(self.model.state_dict())
                 early_stopping_count = 0
             else:
@@ -75,81 +82,59 @@ class Bengali():
             if early_stopping_count > self.cfg["params"]["es_rounds"]:
                 print("Early stopping at round {}".format(ep))
                 break
+        self.save_learning_curve(train_logs, valid_logs)
         self.model.load_state_dict(best_model_weight)
         self.model = self.model.to("cpu")
-        return self.model
+        return self.model, best_results, final_epoch
+
+    def calc_loss(self, log, preds, labels, loader_length):
+        loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
+        loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
+        loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
+        loss = loss_grapheme + loss_vowel + loss_consonant
+        acc_grapheme = accuracy(preds[0], labels[:, 0])
+        acc_vowel = accuracy(preds[1], labels[:, 1])
+        acc_consonant = accuracy(preds[2], labels[:, 2])
+        log["loss"] += (loss / loader_length).cpu().detach().numpy()
+        log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
+        log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
+        log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
+        log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
+        log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
+        log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
+        return loss, log
 
     def train_one_epoch(self):
         self.model.train()
-        log = {
-            "loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
-            "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0
-        }
-
-        loader_length = len(self.train_loader)
+        log = {"loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
+               "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
         for inputs, labels in self.train_loader:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             self.optimizer.zero_grad()
             preds = self.model(inputs)
             if isinstance(preds, tuple) is False:
                 preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
-
-            loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
-            loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
-            loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
-            loss = loss_grapheme + loss_vowel + loss_consonant
+            loss, log = self.calc_loss(log, preds, labels, len(self.train_loader))
             loss.backward()
             self.optimizer.step()
-
-            acc_grapheme = accuracy(preds[0], labels[:, 0])
-            acc_vowel = accuracy(preds[1], labels[:, 1])
-            acc_consonant = accuracy(preds[2], labels[:, 2])
-
-            log["loss"] += (loss / loader_length).cpu().detach().numpy()
-            log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
-            log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
-            log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
-            log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
-            log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
-            log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
         log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
         return log
 
     def valid_one_epoch(self):
         self.model.eval()
-        log = {
-            "loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
-            "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0
-        }
-
-        loader_length = len(self.valid_loader)
+        log = {"loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
+               "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
         with torch.no_grad():
             for inputs, labels in self.valid_loader:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 preds = self.model(inputs)
                 if isinstance(preds, tuple) is False:
                     preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
-
-                loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
-                loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
-                loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
-                loss = loss_grapheme + loss_vowel + loss_consonant
-
-                acc_grapheme = accuracy(preds[0], labels[:, 0])
-                acc_vowel = accuracy(preds[1], labels[:, 1])
-                acc_consonant = accuracy(preds[2], labels[:, 2])
-
-                log["loss"] += (loss / loader_length).cpu().detach().numpy()
-                log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
-                log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
-                log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
-                log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
-                log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
-                log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
+                loss, log = self.calc_loss(log, preds, labels, len(self.valid_loader))
         log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
         return log
 
-    def test():
+    def test(self):
         pass
 
     def get_train_dataloader(self, df, is_train):
@@ -165,21 +150,3 @@ class Bengali():
         paths = [x for x in TEST_IMG_PATH.glob("*.png")]
         return DataLoader(SimpleDataset(paths, transform=transforms.ToTensor()),
                           batch_size=self.cfg["params"]["batch_size"])
-
-    def show_logs(self, epoch, results_train, results_valid):
-        if self.cfg["params"]["verbose"] == -1 or epoch + 1 % self.cfg["params"]["verbose"] != 0:
-            return
-        header = "| train / valid | epoch "
-        train = "| train | {} ".format(epoch + 1)
-        valid = "| valid | {} ".format(epoch + 1)
-        for key in results_train.keys():
-            header += "| {} ".format(key)
-            train += "| {} ".format(results_train[key])
-            valid += "| {} ".format(results_valid[key])
-        header += "|"
-        train += "|"
-        valid += "|"
-        print(header)
-        print(train)
-        print(valid)
-        print("--------------------")

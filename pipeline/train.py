@@ -44,13 +44,20 @@ def main():
     # training
     modulelib = importlib.import_module(cfg_dir)
     classifier = getattr(modulelib, cfg_dir)(cfg)
-    model = classifier.fit()
+    model, best_results, final_epoch = classifier.fit()
 
     # logging
     with mlflow.start_run():
+        mlflow.log_param("Competition", cfg_dir)
         mlflow.log_param("index", index)
         for key, value in cfg.items():
-            mlflow.log_param(key, value)
+            if type(value) is dict:
+                for k, v in value.items():
+                    mlflow.log_param("{} - {}".format(key, k), v)
+            else:
+                mlflow.log_param(key, value)
+        mlflow.log_param("final_epoch", final_epoch)
+        mlflow.log_metrics(best_results)
         mlflow.pytorch.log_model(model, "model")
 
 

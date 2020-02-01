@@ -1,6 +1,6 @@
 seed: 1116
 params:
-  epochs: 1
+  epochs: 4
   batch_size: 4
   es_rounds: 10
   verbose: 1
