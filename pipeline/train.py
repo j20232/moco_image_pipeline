@@ -39,7 +39,6 @@ def main():
             else:
                 mlflow.log_param(key, value)
         mlflow.log_metrics(best_results)
-        mlflow.pytorch.log_model(model, "model")
 
 
 if __name__ == "__main__":
