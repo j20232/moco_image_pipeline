@@ -4,23 +4,19 @@ from torch import nn
 import torch.nn.functional as F
 from torch.nn import Sequential
 
-from .blocks import LinearBlock
+from .linear_block import LinearBlock
 
 
 class PretrainedCNN(nn.Module):
     def __init__(self, model_name='se_resnext101_32x4d',
-                 in_channels=3, out_dim=10, hdim=512,
-                 use_bn=True, pretrained='imagenet'):
+                 in_channels=3, out_dim=10, hdim=512, activation=F.leaky_relu,
+                 use_bn=True, pretrained='imagenet', do_pooling=True):
         super(PretrainedCNN, self).__init__()
         self.conv0 = nn.Conv2d(
             in_channels, 3, kernel_size=3, stride=1, padding=1, bias=True)
         self.base_model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
-        activation = F.leaky_relu
-        self.do_pooling = True
-        if self.do_pooling:
-            inch = self.base_model.last_linear.in_features
-        else:
-            inch = None
+        self.do_pooling = do_pooling
+        inch = self.base_model.last_linear.in_features if self.do_pooling else None
         lin1 = LinearBlock(inch, hdim, use_bn=use_bn, activation=activation, residual=False)
         lin2 = LinearBlock(hdim, out_dim, use_bn=use_bn, activation=None, residual=False)
         self.lin_layers = Sequential(lin1, lin2)

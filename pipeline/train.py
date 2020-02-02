@@ -4,8 +4,7 @@ import warnings
 import mlflow
 import mlflow.pytorch
 from pathlib import Path
-from pipeline.utils.seed import seed_everything
-from pipeline.utils.reader import read_yaml
+from pipeline.utils import seed_everything, read_yaml
 
 
 def main():

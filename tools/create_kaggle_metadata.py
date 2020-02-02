@@ -21,3 +21,4 @@ f = open(str(UPLOAD_DIR / META), "w")
 json.dump(meta_data, f, indent=4)
 
 # TODO zip here
+

@@ -17,7 +17,7 @@ import pipeline.augmentation as aug
 from pipeline.datasets import SimpleDataset
 from pipeline.functions.metrics import accuracy
 from pipeline.models import PretrainedCNN
-from pipeline.utils.train_utils import show_logs
+from pipeline.utils import show_logs
 
 GRAPH = 168
 VOWEL = 11
@@ -28,7 +28,6 @@ LOG_PATH = ROOT_PATH / "logs"
 MODEL_PATH = ROOT_PATH / "models"
 TRAIN_CSV_PATH = ROOT_PATH / "input" / "train.csv"
 TRAIN_IMG_PATH = ROOT_PATH / "input" / "train_images"
-TEST_IMG_PATH = ROOT_PATH / "input" / "test_images"
 SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
 
 
@@ -194,9 +193,3 @@ class Bengali():
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)
-
-    def get_test_dataloader(self):
-        # TODO: Fix here
-        paths = [x for x in TEST_IMG_PATH.glob("*.png")]
-        return DataLoader(SimpleDataset(paths, transform=transforms.ToTensor()),
-                          batch_size=self.cfg["params"]["batch_size"])
