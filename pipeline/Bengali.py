@@ -67,6 +67,22 @@ class Bengali():
         df = train_df.head(10)
         self.valid_loader = self.get_train_dataloader(df, False)
 
+    def get_train_dataloader(self, df, is_train):
+        # Train if is_train else Valid
+        paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in df["image_id"].values]
+        labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
+        tfms = []
+        for tfm_dict in self.cfg["transform"]:
+            name, params = tfm_dict["name"], tfm_dict["params"]
+            if name in aug.modules:
+                tfms.append(getattr(aug, name)(**params))
+            else:
+                tfms.append(getattr(transforms, name)(**params))    # torchvision.transforms
+        tfms.append(Normalizer())
+        tfms.append(transforms.ToTensor())
+        return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
+                          batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)
+
     def fit(self):
         self.initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
@@ -84,24 +100,6 @@ class Bengali():
             self.model.load_state_dict(self.best_model_weight)
         self.close_fitting()
         return self.model, self.best_results
-
-    def initialize_fitting(self):
-        self.model = self.model.to(self.device)
-        self.best_model_weight = copy.deepcopy(self.model.state_dict())
-        self.best_results = {"loss": 10000000}
-        self.early_stopping_count = 0
-        Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
-        save_path = LOG_PATH / self.competition_name / self.index
-        if save_path.exists():
-            shutil.rmtree(str(save_path))
-        self.writer = SummaryWriter(log_dir=str(save_path))
-
-    def close_fitting(self):
-        competition_model_path = MODEL_PATH / self.competition_name
-        competition_model_path.mkdir(parents=True, exist_ok=True)
-        torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
-        self.model = self.model.to("cpu")
-        self.writer.close()
 
     def calc_loss(self, preds, labels, log=None, loader_length=1):
         loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
@@ -170,6 +168,24 @@ class Bengali():
             return True
         return False
 
+    def initialize_fitting(self):
+        self.model = self.model.to(self.device)
+        self.best_model_weight = copy.deepcopy(self.model.state_dict())
+        self.best_results = {"loss": 10000000}
+        self.early_stopping_count = 0
+        Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
+        save_path = LOG_PATH / self.competition_name / self.index
+        if save_path.exists():
+            shutil.rmtree(str(save_path))
+        self.writer = SummaryWriter(log_dir=str(save_path))
+
+    def close_fitting(self):
+        competition_model_path = MODEL_PATH / self.competition_name
+        competition_model_path.mkdir(parents=True, exist_ok=True)
+        torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
+        self.model = self.model.to("cpu")
+        self.writer.close()
+
     def add_tensorboard(self, results_train, results_valid, ep):
         self.writer.add_scalars("data/loss",
                                 {"train": results_train["loss"],
@@ -192,19 +208,3 @@ class Bengali():
                                  "valid_vowel": results_valid["acc_vowel"],
                                  "train_consonant": results_train["acc_consonant"],
                                  "valid_consonant": results_valid["acc_consonant"]}, ep)
-
-    def get_train_dataloader(self, df, is_train):
-        # Train if is_train else Valid
-        paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in df["image_id"].values]
-        labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
-        tfms = []
-        for tfm_dict in self.cfg["transform"]:
-            name, params = tfm_dict["name"], tfm_dict["params"]
-            if name in aug.modules:
-                tfms.append(getattr(aug, name)(**params))
-            else:
-                tfms.append(getattr(transforms, name)(**params))    # torchvision.transforms
-        tfms.append(Normalizer())
-        tfms.append(transforms.ToTensor())
-        return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
-                          batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)
