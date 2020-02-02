@@ -93,7 +93,8 @@ class Bengali():
             results_valid = self.valid_one_epoch(results_valid)
             show_logs(self.cfg, ep, results_train, results_valid)
             self.add_tensorboard(results_train, results_valid, ep)
-            if self.check_early_stopping(results_valid, ep):
+            if self.check_early_stopping(results_valid):
+                print("Early stopping at round {}".format(ep))
                 break
             self.model.load_state_dict(self.best_model_weight)
         self.close_fitting()
@@ -145,7 +146,7 @@ class Bengali():
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
         return loss, log
 
-    def check_early_stopping(self, results_valid, ep):
+    def check_early_stopping(self, results_valid):
         if results_valid["loss"] < self.best_results["loss"]:
             self.best_results["loss_grapheme"] = results_valid["loss_grapheme"]
             self.best_results["loss_vowel"] = results_valid["loss_vowel"]
@@ -161,10 +162,7 @@ class Bengali():
             self.early_stopping_count = 0
         else:
             self.early_stopping_count += 1
-        if self.early_stopping_count > self.cfg["params"]["es_rounds"]:
-            print("Early stopping at round {}".format(ep))
-            return True
-        return False
+        return self.early_stopping_count > self.cfg["params"]["es_rounds"]
 
     def initialize_fitting(self):
         self.model = self.model.to(self.device)
@@ -173,8 +171,7 @@ class Bengali():
         self.early_stopping_count = 0
         Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
         save_path = LOG_PATH / self.competition_name / self.index
-        if save_path.exists():
-            shutil.rmtree(str(save_path))
+        shutil.rmtree(str(save_path), ignore_errors=True)
         self.writer = SummaryWriter(log_dir=str(save_path))
 
     def close_fitting(self):
