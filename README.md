@@ -60,7 +60,7 @@ pipenv run local_mlflow
 
 |Competition|Command|Meaning|
 |:-|:-|:-|
-|General|`dataset [COMPETITION] [ID]`|Create Kaggle dataset|
+|General|`dataset [COMPETITION] [ID]`|Create metadata.json for Kaggle dataset at local env.|
 |General|`upload`|Upload `./upload` directory to Kaggle dataset|
 |[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_parquet`|Create image dataset for bengali competition|
 
