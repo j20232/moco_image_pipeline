@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+# for bengali competition
+
 
 def calc_bounding_box(img):
     cols = np.any(img, axis=0)
