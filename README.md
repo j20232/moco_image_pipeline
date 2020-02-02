@@ -1,22 +1,8 @@
-# Moco Image Pipeline
-## About
+# 🐅 Moco Image Pipeline
+## 🙃 About
 Pipeline codes for image tasks
 
-## Quick Start
-
-### Run the container
-
-```
-docker-compose build
-docker-compose up -d
-```
-
-### Run commands
-
-```
-docker exec -it bengali bash
-python src/main.py
-```
+## 🏃‍♂️ Quick Start
 
 ### Commands
 
@@ -36,6 +22,27 @@ pipenv run bengali_train 0000
 
 If you don't use Pipenv, you can get the definition of the commands from [Pipfile](https://github.com/j20232/bengali/blob/master/Pipfile).
 
+## 🐳 Docker
+### Run the container
+
+```
+docker-compose build
+docker-compose up -d
+```
+** Now debugging **
+
+### Run commands
+
+```
+docker exec -it bengali bash
+python src/main.py
+```
+
+** Now debugging**
+
+---
+
+## 📈 Visualization
 ### TensorBoard
 
 ```
@@ -56,7 +63,9 @@ mlflow server -h [ip] -p [port]
 pipenv run local_mlflow
 ```
 
-### Tools
+---
+
+## 🛠 Tools
 
 |Competition|Command|Meaning|
 |:-|:-|:-|
@@ -65,7 +74,7 @@ pipenv run local_mlflow
 |[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_parquet`|Create image dataset for bengali competition|
 
 
-## Special Thanks
+## 👏 Special Thanks
 
 - https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch
 - https://github.com/Ririverce/neural-network-pytorch
