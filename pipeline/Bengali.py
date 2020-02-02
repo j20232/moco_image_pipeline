@@ -98,7 +98,7 @@ class Bengali():
                 break
             self.model.load_state_dict(self.best_model_weight)
         self.__close_fitting()
-        return self.model, self.best_results
+        return self.best_results
 
     def __train_one_epoch(self, log):
         self.model.train()

@@ -27,7 +27,7 @@ def main():
     # training
     modulelib = importlib.import_module(competition)
     classifier = getattr(modulelib, competition)(competition, index, cfg)
-    model, best_results = classifier.fit()
+    best_results = classifier.fit()
 
     # logging
     with mlflow.start_run(run_name=competition):
