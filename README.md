@@ -2,6 +2,8 @@
 ## 🙃 About
 Pipeline codes for image tasks
 
+---
+
 ## 🏃‍♂️ Quick Start
 
 ### Commands
@@ -21,6 +23,8 @@ pipenv run bengali_train 0000
 ```
 
 If you don't use Pipenv, you can get the definition of the commands from [Pipfile](https://github.com/j20232/bengali/blob/master/Pipfile).
+
+---
 
 ## 🐳 Docker
 ### Run the container
@@ -73,6 +77,7 @@ pipenv run local_mlflow
 |General|`upload`|Upload `./upload` directory to Kaggle dataset|
 |[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_parquet`|Create image dataset for bengali competition|
 
+---
 
 ## 👏 Special Thanks
 
