@@ -26,7 +26,7 @@ pipenv run [command] [INDEX]
 
 |Competition|Train|Test|Script|Config|
 |:-|:-|:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_train|**TODO**|[Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/Bengali)|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_train`|**TODO**|[Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/Bengali)|
 
 e.g.
 
@@ -36,7 +36,7 @@ pipenv run bengali_train 0000
 
 If you don't use Pipenv, you can get the definition of the commands from [Pipfile](https://github.com/j20232/bengali/blob/master/Pipfile).
 
-### Tensor Board
+### TensorBoard
 
 ```
 tensorboard --log_dir logs/COMPETITION/INDEX
@@ -60,7 +60,9 @@ pipenv run local_mlflow
 
 |Competition|Command|Meaning|
 |:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|bengali_parquet|To create image dataset|
+|General|`dataset [COMPETITION] [ID]`|Create Kaggle dataset|
+|General|`upload`|Upload `./upload` directory to Kaggle dataset|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_parquet`|Create image dataset for bengali competition|
 
 
 ## Special Thanks
