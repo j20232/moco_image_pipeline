@@ -33,9 +33,6 @@ SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
 
 # dirty
 class Normalizer():
-    def __init__(self):
-        pass
-
     def __call__(self, img):
         return (img.astype(np.float32) - 0.0692) / 0.2051
 
@@ -52,13 +49,17 @@ class Bengali():
                                    model_name=self.cfg["model"]["name"],
                                    pretrained=self.cfg["model"]["pretrained"])
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        if is_train is False:
-            return
+        if is_train:
+            self.set_training()
+
+    def set_training(self):
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
         self.scheduler = getattr(lr_scheduler, self.cfg["scheduler"]["name"])(
             self.optimizer, **self.cfg["scheduler"]["params"][0])
+        self.create_validation_set()
 
+    def create_validation_set(self):
         # TODO: define how to split data
         train_df = pd.read_csv(TRAIN_CSV_PATH)
         df = train_df.head(10)
@@ -67,73 +68,39 @@ class Bengali():
         self.valid_loader = self.get_train_dataloader(df, False)
 
     def fit(self):
-        self.model = self.model.to(self.device)
-        best_model_weight = copy.deepcopy(self.model.state_dict())
-        best_results = {"loss": 10000000}
-        early_stopping_count = 0
-        final_epoch = 0
-        Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
-        save_path = LOG_PATH / self.competition_name / self.index
-        if save_path.exists():
-            shutil.rmtree(str(save_path))
-        writer = SummaryWriter(log_dir=str(save_path))
+        self.initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
             results_train = {"loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
                              "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
             results_valid = results_train
-            final_epoch += 1
             self.scheduler.step()
             results_train = self.train_one_epoch(results_train)
             results_valid = self.valid_one_epoch(results_valid)
             show_logs(self.cfg, ep, results_train, results_valid)
-
-            # early stopping
-            if results_valid["loss"] < best_results["loss"]:
-                best_results["loss"] = results_valid["loss"]
-                best_results["loss_grapheme"] = results_valid["loss_grapheme"]
-                best_results["loss_vowel"] = results_valid["loss_vowel"]
-                best_results["loss_consonant"] = results_valid["loss_consonant"]
-                best_results["acc"] = results_valid["acc"]
-                best_results["acc_grapheme"] = results_valid["acc_grapheme"]
-                best_results["acc_vowel"] = results_valid["acc_vowel"]
-                best_results["acc_consonant"] = results_valid["acc_consonant"]
-                best_model_weight = copy.deepcopy(self.model.state_dict())
-                early_stopping_count = 0
-            else:
-                early_stopping_count += 1
-            if early_stopping_count > self.cfg["params"]["es_rounds"]:
-                print("Early stopping at round {}".format(ep))
+            self.add_tensorboard(results_train, results_valid, ep)
+            if self.check_early_stopping(results_valid, ep):
                 break
+            self.model.load_state_dict(self.best_model_weight)
+        self.close_fitting()
+        return self.model, self.best_results
 
-            # logging
-            writer.add_scalars("data/loss",
-                               {"train": results_train["loss"],
-                                "valid": results_valid["loss"]}, ep)
-            writer.add_scalars("data/loss_grapheme",
-                               {"train": results_train["loss_grapheme"],
-                                "valid": results_valid["loss_grapheme"]}, ep)
-            writer.add_scalars("data/loss_vowel",
-                               {"train": results_train["loss_vowel"],
-                                "valid": results_valid["loss_vowel"]}, ep)
-            writer.add_scalars("data/loss_consonant",
-                               {"train": results_train["loss_consonant"],
-                                "valid": results_valid["loss_consonant"]}, ep)
-            writer.add_scalars("data/acc",
-                               {"train": results_train["acc"],
-                                "valid": results_valid["acc"],
-                                "train_grapheme": results_train["acc_grapheme"],
-                                "valid_grapheme": results_valid["acc_grapheme"],
-                                "train_vowel": results_train["acc_vowel"],
-                                "valid_vowel": results_valid["acc_vowel"],
-                                "train_consonant": results_train["acc_consonant"],
-                                "valid_consonant": results_valid["acc_consonant"]}, ep)
-        self.model.load_state_dict(best_model_weight)
+    def initialize_fitting(self):
+        self.model = self.model.to(self.device)
+        self.best_model_weight = copy.deepcopy(self.model.state_dict())
+        self.best_results = {"loss": 10000000}
+        self.early_stopping_count = 0
+        Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
+        save_path = LOG_PATH / self.competition_name / self.index
+        if save_path.exists():
+            shutil.rmtree(str(save_path))
+        self.writer = SummaryWriter(log_dir=str(save_path))
+
+    def close_fitting(self):
         competition_model_path = MODEL_PATH / self.competition_name
         competition_model_path.mkdir(parents=True, exist_ok=True)
-        torch.save(best_model_weight, str(competition_model_path / f"{self.index}.pth"))
+        torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
         self.model = self.model.to("cpu")
-        writer.close()
-        return self.model, best_results, final_epoch
+        self.writer.close()
 
     def calc_loss(self, preds, labels, log=None, loader_length=1):
         loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
@@ -178,6 +145,48 @@ class Bengali():
         log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
         return log
 
+    def check_early_stopping(self, results_valid, ep):
+        if results_valid["loss"] < self.best_results["loss"]:
+            self.best_results["loss"] = results_valid["loss"]
+            self.best_results["loss_grapheme"] = results_valid["loss_grapheme"]
+            self.best_results["loss_vowel"] = results_valid["loss_vowel"]
+            self.best_results["loss_consonant"] = results_valid["loss_consonant"]
+            self.best_results["acc"] = results_valid["acc"]
+            self.best_results["acc_grapheme"] = results_valid["acc_grapheme"]
+            self.best_results["acc_vowel"] = results_valid["acc_vowel"]
+            self.best_results["acc_consonant"] = results_valid["acc_consonant"]
+            self.best_model_weight = copy.deepcopy(self.model.state_dict())
+            self.early_stopping_count = 0
+        else:
+            self.early_stopping_count += 1
+        if self.early_stopping_count > self.cfg["params"]["es_rounds"]:
+            print("Early stopping at round {}".format(ep))
+            return True
+        return False
+
+    def add_tensorboard(self, results_train, results_valid, ep):
+        self.writer.add_scalars("data/loss",
+                                {"train": results_train["loss"],
+                                 "valid": results_valid["loss"]}, ep)
+        self.writer.add_scalars("data/loss_grapheme",
+                                {"train": results_train["loss_grapheme"],
+                                 "valid": results_valid["loss_grapheme"]}, ep)
+        self.writer.add_scalars("data/loss_vowel",
+                                {"train": results_train["loss_vowel"],
+                                 "valid": results_valid["loss_vowel"]}, ep)
+        self.writer.add_scalars("data/loss_consonant",
+                                {"train": results_train["loss_consonant"],
+                                 "valid": results_valid["loss_consonant"]}, ep)
+        self.writer.add_scalars("data/acc",
+                                {"train": results_train["acc"],
+                                 "valid": results_valid["acc"],
+                                 "train_grapheme": results_train["acc_grapheme"],
+                                 "valid_grapheme": results_valid["acc_grapheme"],
+                                 "train_vowel": results_train["acc_vowel"],
+                                 "valid_vowel": results_valid["acc_vowel"],
+                                 "train_consonant": results_train["acc_consonant"],
+                                 "valid_consonant": results_valid["acc_consonant"]}, ep)
+
     def get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
         paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in df["image_id"].values]
@@ -189,7 +198,7 @@ class Bengali():
                 tfms.append(getattr(aug, name)(**params))
             else:
                 tfms.append(getattr(transforms, name)(**params))    # torchvision.transforms
-        tfms.append(Normalizer())   # dirty
+        tfms.append(Normalizer())
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)

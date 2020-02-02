@@ -27,7 +27,7 @@ def main():
     # training
     modulelib = importlib.import_module(competition)
     classifier = getattr(modulelib, competition)(competition, index, cfg)
-    model, best_results, final_epoch = classifier.fit()
+    model, best_results = classifier.fit()
 
     # logging
     with mlflow.start_run():
@@ -39,7 +39,6 @@ def main():
                     mlflow.log_param("{}/{}".format(key, k), v)
             else:
                 mlflow.log_param(key, value)
-        mlflow.log_param("final_epoch", final_epoch)
         mlflow.log_metrics(best_results)
         mlflow.pytorch.log_model(model, "model")
 
