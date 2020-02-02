@@ -50,24 +50,24 @@ class Bengali():
                                    pretrained=self.cfg["model"]["pretrained"])
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         if is_train:
-            self.set_training()
+            self.__set_training()
 
-    def set_training(self):
+    def __set_training(self):
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
         self.scheduler = getattr(lr_scheduler, self.cfg["scheduler"]["name"])(
             self.optimizer, **self.cfg["scheduler"]["params"][0])
-        self.create_validation_set()
+        self.__create_validation_set()
 
-    def create_validation_set(self):
+    def __create_validation_set(self):
         # TODO: define how to split data
         train_df = pd.read_csv(TRAIN_CSV_PATH)
         df = train_df.head(10)
-        self.train_loader = self.get_train_dataloader(df, True)
+        self.train_loader = self.__get_train_dataloader(df, True)
         df = train_df.head(10)
-        self.valid_loader = self.get_train_dataloader(df, False)
+        self.valid_loader = self.__get_train_dataloader(df, False)
 
-    def get_train_dataloader(self, df, is_train):
+    def __get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
         paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in df["image_id"].values]
         labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
@@ -82,25 +82,25 @@ class Bengali():
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)
 
     def fit(self):
-        self.initialize_fitting()
+        self.__initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
             results_train = {"loss": 0,
                              "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
                              "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
             results_valid = results_train
             self.scheduler.step()
-            results_train = self.train_one_epoch(results_train)
-            results_valid = self.valid_one_epoch(results_valid)
+            results_train = self.__train_one_epoch(results_train)
+            results_valid = self.__valid_one_epoch(results_valid)
             show_logs(self.cfg, ep, results_train, results_valid)
-            self.add_tensorboard(results_train, results_valid, ep)
-            if self.check_early_stopping(results_valid):
+            self.__add_tensorboard(results_train, results_valid, ep)
+            if self.__check_early_stopping(results_valid):
                 print("Early stopping at round {}".format(ep))
                 break
             self.model.load_state_dict(self.best_model_weight)
-        self.close_fitting()
+        self.__close_fitting()
         return self.model, self.best_results
 
-    def train_one_epoch(self, log):
+    def __train_one_epoch(self, log):
         self.model.train()
         for inputs, labels in self.train_loader:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
@@ -108,13 +108,13 @@ class Bengali():
             preds = self.model(inputs)
             if isinstance(preds, tuple) is False:
                 preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
-            loss, log = self.calc_loss(preds, labels, log, len(self.train_loader))
+            loss, log = self.__calc_loss(preds, labels, log, len(self.train_loader))
             loss.backward()
             self.optimizer.step()
         log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
         return log
 
-    def valid_one_epoch(self, log):
+    def __valid_one_epoch(self, log):
         self.model.eval()
         with torch.no_grad():
             for inputs, labels in self.valid_loader:
@@ -122,11 +122,11 @@ class Bengali():
                 preds = self.model(inputs)
                 if isinstance(preds, tuple) is False:
                     preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
-                loss, log = self.calc_loss(preds, labels, log, len(self.valid_loader))
+                loss, log = self.__calc_loss(preds, labels, log, len(self.valid_loader))
         log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
         return log
 
-    def calc_loss(self, preds, labels, log=None, loader_length=1):
+    def __calc_loss(self, preds, labels, log=None, loader_length=1):
         loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
         loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
         loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
@@ -146,7 +146,7 @@ class Bengali():
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
         return loss, log
 
-    def check_early_stopping(self, results_valid):
+    def __check_early_stopping(self, results_valid):
         if results_valid["loss"] < self.best_results["loss"]:
             self.best_results["loss_grapheme"] = results_valid["loss_grapheme"]
             self.best_results["loss_vowel"] = results_valid["loss_vowel"]
@@ -164,7 +164,7 @@ class Bengali():
             self.early_stopping_count += 1
         return self.early_stopping_count > self.cfg["params"]["es_rounds"]
 
-    def initialize_fitting(self):
+    def __initialize_fitting(self):
         self.model = self.model.to(self.device)
         self.best_model_weight = copy.deepcopy(self.model.state_dict())
         self.best_results = {"loss": 10000000}
@@ -174,14 +174,14 @@ class Bengali():
         shutil.rmtree(str(save_path), ignore_errors=True)
         self.writer = SummaryWriter(log_dir=str(save_path))
 
-    def close_fitting(self):
+    def __close_fitting(self):
         competition_model_path = MODEL_PATH / self.competition_name
         competition_model_path.mkdir(parents=True, exist_ok=True)
         torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
         self.model = self.model.to("cpu")
         self.writer.close()
 
-    def add_tensorboard(self, results_train, results_valid, ep):
+    def __add_tensorboard(self, results_train, results_valid, ep):
         self.writer.add_scalars("data/loss",
                                 {"train": results_train["loss"],
                                  "valid": results_valid["loss"]}, ep)
