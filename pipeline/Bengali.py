@@ -101,26 +101,6 @@ class Bengali():
         self.close_fitting()
         return self.model, self.best_results
 
-    def calc_loss(self, preds, labels, log=None, loader_length=1):
-        loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
-        loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
-        loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
-        loss = loss_grapheme + loss_vowel + loss_consonant
-
-        log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
-        log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
-        log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
-        log["loss"] += (loss / loader_length).cpu().detach().numpy()
-
-        acc_grapheme = accuracy(preds[0], labels[:, 0])
-        acc_vowel = accuracy(preds[1], labels[:, 1])
-        acc_consonant = accuracy(preds[2], labels[:, 2])
-
-        log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
-        log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
-        log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
-        return loss, log
-
     def train_one_epoch(self, log):
         self.model.train()
         for inputs, labels in self.train_loader:
@@ -146,6 +126,26 @@ class Bengali():
                 loss, log = self.calc_loss(preds, labels, log, len(self.valid_loader))
         log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
         return log
+
+    def calc_loss(self, preds, labels, log=None, loader_length=1):
+        loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
+        loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
+        loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
+        loss = loss_grapheme + loss_vowel + loss_consonant
+
+        log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
+        log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
+        log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
+        log["loss"] += (loss / loader_length).cpu().detach().numpy()
+
+        acc_grapheme = accuracy(preds[0], labels[:, 0])
+        acc_vowel = accuracy(preds[1], labels[:, 1])
+        acc_consonant = accuracy(preds[2], labels[:, 2])
+
+        log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
+        log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
+        log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
+        return loss, log
 
     def check_early_stopping(self, results_valid, ep):
         if results_valid["loss"] < self.best_results["loss"]:
