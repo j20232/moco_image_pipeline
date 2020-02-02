@@ -2,6 +2,8 @@
 bengali_train = "pipenv run python ./pipeline/train.py Bengali"
 bengali_parquet = "pipenv run python ./tools/convert_parquet2png.py"
 local_mlflow = "mlflow server -h 0.0.0.0 -p 8888"
+dataset = "pipenv run python ./tools/upload_kaggle.py noroaspe"
+upload = "kaggle datasets create -p upload"
 
 [[source]]
 name = "pypi"

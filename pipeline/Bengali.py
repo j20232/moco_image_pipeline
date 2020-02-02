@@ -32,6 +32,7 @@ TEST_IMG_PATH = ROOT_PATH / "input" / "test_images"
 SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
 
 
+# dirty
 class Normalizer():
     def __init__(self):
         pass

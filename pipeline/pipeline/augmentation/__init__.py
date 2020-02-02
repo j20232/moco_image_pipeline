@@ -4,3 +4,4 @@ from .album import RandomBlur, RandomNoise, CoarseDropout, GridDistortion, Elast
 modules = ["CenterOrRandomCrop", "GaussianNoise",
            "RandomBlur", "RandomNoise", "CoarseDropout", "GridDistortion",
            "ElasticTransform", "RandomBrightnessContrast", "ShiftScaleRotate"]
+
