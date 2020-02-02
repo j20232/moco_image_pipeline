@@ -30,8 +30,7 @@ def main():
     model, best_results = classifier.fit()
 
     # logging
-    with mlflow.start_run():
-        mlflow.log_param("Competition", competition)
+    with mlflow.start_run(run_name=competition):
         mlflow.log_param("index", index)
         for key, value in cfg.items():
             if type(value) is dict:
