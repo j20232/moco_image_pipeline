@@ -42,7 +42,7 @@ docker exec -it bengali bash
 python src/main.py
 ```
 
-** Now debugging**
+** Now debugging **
 
 ---
 
