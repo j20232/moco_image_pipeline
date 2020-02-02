@@ -39,6 +39,8 @@ def main():
             else:
                 mlflow.log_param(key, value)
         mlflow.log_metrics(best_results)
+        model_path = Path(".").resolve() / "models" / competition
+        mlflow.log_artifact(str(model_path / "{}.pth".format(index)))
 
 
 if __name__ == "__main__":
