@@ -178,7 +178,6 @@ class Bengali():
         competition_model_path = MODEL_PATH / self.competition_name
         competition_model_path.mkdir(parents=True, exist_ok=True)
         torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
-        self.model = self.model.to("cpu")
         self.writer.close()
 
     def __add_tensorboard(self, results_train, results_valid, ep):
