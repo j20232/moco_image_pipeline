@@ -70,7 +70,8 @@ class Bengali():
     def fit(self):
         self.initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
-            results_train = {"loss": 0, "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
+            results_train = {"loss": 0,
+                             "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
                              "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
             results_valid = results_train
             self.scheduler.step()
@@ -107,13 +108,16 @@ class Bengali():
         loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
         loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
         loss = loss_grapheme + loss_vowel + loss_consonant
-        acc_grapheme = accuracy(preds[0], labels[:, 0])
-        acc_vowel = accuracy(preds[1], labels[:, 1])
-        acc_consonant = accuracy(preds[2], labels[:, 2])
-        log["loss"] += (loss / loader_length).cpu().detach().numpy()
+
         log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
         log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
         log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
+        log["loss"] += (loss / loader_length).cpu().detach().numpy()
+
+        acc_grapheme = accuracy(preds[0], labels[:, 0])
+        acc_vowel = accuracy(preds[1], labels[:, 1])
+        acc_consonant = accuracy(preds[2], labels[:, 2])
+
         log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
         log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
@@ -147,14 +151,16 @@ class Bengali():
 
     def check_early_stopping(self, results_valid, ep):
         if results_valid["loss"] < self.best_results["loss"]:
-            self.best_results["loss"] = results_valid["loss"]
             self.best_results["loss_grapheme"] = results_valid["loss_grapheme"]
             self.best_results["loss_vowel"] = results_valid["loss_vowel"]
             self.best_results["loss_consonant"] = results_valid["loss_consonant"]
-            self.best_results["acc"] = results_valid["acc"]
+            self.best_results["loss"] = results_valid["loss"]
+
             self.best_results["acc_grapheme"] = results_valid["acc_grapheme"]
             self.best_results["acc_vowel"] = results_valid["acc_vowel"]
             self.best_results["acc_consonant"] = results_valid["acc_consonant"]
+            self.best_results["acc"] = results_valid["acc"]
+
             self.best_model_weight = copy.deepcopy(self.model.state_dict())
             self.early_stopping_count = 0
         else:
