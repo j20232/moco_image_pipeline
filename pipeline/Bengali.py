@@ -74,10 +74,8 @@ class Bengali():
         tfms = []
         for tfm_dict in self.cfg["transform"]:
             name, params = tfm_dict["name"], tfm_dict["params"]
-            if name in aug.modules:
-                tfms.append(getattr(aug, name)(**params))
-            else:
-                tfms.append(getattr(transforms, name)(**params))    # torchvision.transforms
+            lib = aug if name in aug.modules else transforms
+            tfms.append(getattr(lib, name)(**params))
         tfms.append(Normalizer())
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
