@@ -84,13 +84,9 @@ class Bengali():
     def fit(self):
         self.__initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
-            results_train = {"loss": 0,
-                             "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
-                             "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
-            results_valid = results_train
             self.scheduler.step()
-            results_train = self.__train_one_epoch(results_train)
-            results_valid = self.__valid_one_epoch(results_valid)
+            results_train = self.__train_one_epoch()
+            results_valid = self.__valid_one_epoch()
             show_logs(self.cfg, ep, results_train, results_valid)
             self.__add_tensorboard(results_train, results_valid, ep)
             if self.__check_early_stopping(results_valid):
