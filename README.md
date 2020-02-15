@@ -79,7 +79,7 @@ pipenv run local_mlflow
 
 ---
 
-## GCP
+## 📭GCP
 
 Port Forwarding
 
