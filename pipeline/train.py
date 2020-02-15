@@ -39,8 +39,10 @@ def main():
             else:
                 mlflow.log_param(key, value)
         mlflow.log_metrics(best_results)
-        model_path = Path(".").resolve() / "models" / competition
-        mlflow.log_artifact(str(model_path / "{}.pth".format(index)))
+        model_path = Path(".").resolve() / "models" / competition / "{}.pth".format(index)
+        mlflow.log_artifact(str(model_path))
+        print("Saved model at {}".format(model_path))
+    print("Finished!")
 
 
 if __name__ == "__main__":

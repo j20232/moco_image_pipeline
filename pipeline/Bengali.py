@@ -61,9 +61,12 @@ class Bengali():
 
     def __create_validation_set(self):
         train_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["train"])
+        train_df = train_df.head(10)
         self.train_loader = self.__get_train_dataloader(train_df, True)
         valid_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["valid"])
+        valid_df = valid_df.head(10)
         self.valid_loader = self.__get_train_dataloader(valid_df, False)
+        print("Loaded train and validation dataset!")
 
     def __get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
@@ -170,12 +173,14 @@ class Bengali():
         save_path = LOG_PATH / self.competition_name / self.index
         shutil.rmtree(str(save_path), ignore_errors=True)
         self.writer = SummaryWriter(log_dir=str(save_path))
+        print("Initialized the setting of training!")
 
     def __close_fitting(self):
         competition_model_path = MODEL_PATH / self.competition_name
         competition_model_path.mkdir(parents=True, exist_ok=True)
         torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
         self.writer.close()
+        print("Finished training!")
 
     def __add_tensorboard(self, results_train, results_valid, ep):
         self.writer.add_scalars("data/loss",
