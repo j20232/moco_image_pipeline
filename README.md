@@ -79,6 +79,16 @@ pipenv run local_mlflow
 
 ---
 
+## GCP
+
+Port Forwarding
+
+```
+gcloud compute ssh [instance_name] -- -N -f -L [local_port]:localhost:[remote_port]
+```
+
+---
+
 ## 👏 Special Thanks
 
 - https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch
