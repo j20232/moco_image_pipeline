@@ -26,9 +26,9 @@ ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
 LOG_PATH = ROOT_PATH / "logs"
 MODEL_PATH = ROOT_PATH / "models"
-TRAIN_CSV_PATH = ROOT_PATH / "input" / "train.csv"
-TRAIN_IMG_PATH = ROOT_PATH / "input" / "train_images"
-SUB_CSV_PATH = ROOT_PATH / "input" / "sample_submission.csv"
+INPUT_PATH = ROOT_PATH / "input"
+TRAIN_IMG_PATH = INPUT_PATH / "train_images"
+SUB_CSV_PATH = INPUT_PATH / "sample_submission.csv"
 
 
 # dirty
@@ -60,12 +60,10 @@ class Bengali():
         self.__create_validation_set()
 
     def __create_validation_set(self):
-        # TODO: define how to split data
-        train_df = pd.read_csv(TRAIN_CSV_PATH)
-        df = train_df.head(10)
-        self.train_loader = self.__get_train_dataloader(df, True)
-        df = train_df.head(10)
-        self.valid_loader = self.__get_train_dataloader(df, False)
+        train_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["train"])
+        self.train_loader = self.__get_train_dataloader(train_df, True)
+        valid_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["valid"])
+        self.valid_loader = self.__get_train_dataloader(valid_df, False)
 
     def __get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
@@ -83,10 +81,13 @@ class Bengali():
 
     def fit(self):
         self.__initialize_fitting()
+        initial_log = {"loss": 0,
+                       "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
+                       "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
             self.scheduler.step()
-            results_train = self.__train_one_epoch()
-            results_valid = self.__valid_one_epoch()
+            results_train = self.__train_one_epoch(initial_log)
+            results_valid = self.__valid_one_epoch(initial_log)
             show_logs(self.cfg, ep, results_train, results_valid)
             self.__add_tensorboard(results_train, results_valid, ep)
             if self.__check_early_stopping(results_valid):
