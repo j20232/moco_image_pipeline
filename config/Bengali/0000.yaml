@@ -3,13 +3,13 @@ dataset:
   train: "moco_train_20.csv"
   valid: "moco_valid_20.csv"
 params:
-  epochs: 1
-  batch_size: 4
+  epochs: 200
+  batch_size: 32
   es_rounds: 10
-  verbose: 1
+  verbose: 10
 model:
   name: "se_resnext50_32x4d"
-  pretrained: null # e.g. 'imagenet'
+  pretrained: "imagenet" # e.g. 'imagenet'
 optim:
   name: "Adam"
   params:

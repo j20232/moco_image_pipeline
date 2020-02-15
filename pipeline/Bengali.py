@@ -61,10 +61,8 @@ class Bengali():
 
     def __create_validation_set(self):
         train_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["train"])
-        train_df = train_df.head(10)
         self.train_loader = self.__get_train_dataloader(train_df, True)
         valid_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["valid"])
-        valid_df = valid_df.head(10)
         self.valid_loader = self.__get_train_dataloader(valid_df, False)
         print("Loaded train and validation dataset!")
 
