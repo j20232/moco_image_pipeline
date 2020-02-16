@@ -91,12 +91,12 @@ class Bengali():
 
     def fit(self):
         self.__initialize_fitting()
-        initial_log = {"loss": 0,
-                       "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
-                       "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
-            results_train = self.__train_one_epoch(initial_log)
-            results_valid = self.__valid_one_epoch(initial_log)
+            log = {"loss": 0,
+                   "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
+                   "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
+            results_train = self.__train_one_epoch(log)
+            results_valid = self.__valid_one_epoch(log)
             show_logs(self.cfg, ep, results_train, results_valid)
             self.__add_tensorboard(results_train, results_valid, ep)
             if self.__check_early_stopping(results_valid):

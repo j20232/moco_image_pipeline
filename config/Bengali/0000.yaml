@@ -1,12 +1,12 @@
 seed: 1116
 dataset:
-  train: "moco_train_20.csv"
-  valid: "moco_valid_20.csv"
+  train: "moco_debug_train.csv"
+  valid: "moco_debug_valid.csv"
 params:
-  epochs: 1
+  epochs: 4
   batch_size: 4
   es_rounds: 10
-  verbose: 10
+  verbose: 1
   num_workers: 2
 model:
   name: "se_resnext50_32x4d"
