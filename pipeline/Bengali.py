@@ -48,7 +48,15 @@ class Bengali():
         self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class,
                                    model_name=self.cfg["model"]["name"],
                                    pretrained=self.cfg["model"]["pretrained"])
+
+        self.competition_model_path = MODEL_PATH / self.competition_name
+        self.competition_model_path.mkdir(parents=True, exist_ok=True)
+        self.check_point_weight_path = self.competition_model_path / f"check_point_{self.index}.pth"
+        if self.check_point_weight_path.exists():
+            self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
+
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
         if is_train:
             self.__set_training()
 
@@ -158,6 +166,7 @@ class Bengali():
             self.best_results["acc"] = results_valid["acc"]
 
             self.best_model_weight = copy.deepcopy(self.model.state_dict())
+            torch.save(self.best_model_weight, str(self.check_point_weight_path))
             self.early_stopping_count = 0
         else:
             self.early_stopping_count += 1
@@ -175,9 +184,7 @@ class Bengali():
         print("Initialized the setting of training!")
 
     def __close_fitting(self):
-        competition_model_path = MODEL_PATH / self.competition_name
-        competition_model_path.mkdir(parents=True, exist_ok=True)
-        torch.save(self.best_model_weight, str(competition_model_path / f"{self.index}.pth"))
+        torch.save(self.best_model_weight, str(self.competition_model_path / f"{self.index}.pth"))
         self.writer.close()
         print("Finished training!")
 
