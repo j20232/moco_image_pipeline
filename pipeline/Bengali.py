@@ -78,7 +78,8 @@ class Bengali():
         tfms.append(Normalizer())
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
-                          batch_size=self.cfg["params"]["batch_size"], shuffle=is_train)
+                          batch_size=self.cfg["params"]["batch_size"], shuffle=is_train,
+                          num_workers=self.cfg["params"]["num_workers"])
 
     def fit(self):
         self.__initialize_fitting()
