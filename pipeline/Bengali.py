@@ -87,7 +87,6 @@ class Bengali():
                        "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
                        "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
-            self.scheduler.step()
             results_train = self.__train_one_epoch(initial_log)
             results_valid = self.__valid_one_epoch(initial_log)
             show_logs(self.cfg, ep, results_train, results_valid)
@@ -100,6 +99,7 @@ class Bengali():
         return self.best_results
 
     def __train_one_epoch(self, log):
+        self.scheduler.step()
         self.model.train()
         for inputs, labels in self.train_loader:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
