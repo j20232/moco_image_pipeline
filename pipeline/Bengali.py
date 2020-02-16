@@ -53,6 +53,7 @@ class Bengali():
         self.competition_model_path.mkdir(parents=True, exist_ok=True)
         self.check_point_weight_path = self.competition_model_path / f"check_point_{self.index}.pth"
         if self.check_point_weight_path.exists():
+            print("Loaded check_point ({})".format(self.check_point_weight_path))
             self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
