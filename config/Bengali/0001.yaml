@@ -4,10 +4,10 @@ dataset:
   valid: "moco_valid_20.csv"
 params:
   epochs: 200
-  batch_size: 32
+  batch_size: 16
   es_rounds: 10
   verbose: 10
-  num_workers: 2
+  num_workers: 4
 model:
   name: "se_resnext50_32x4d"
   pretrained: "imagenet" # e.g. 'imagenet'

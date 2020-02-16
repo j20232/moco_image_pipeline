@@ -109,7 +109,7 @@ class Bengali():
     def __train_one_epoch(self, log):
         self.scheduler.step()
         self.model.train()
-        for inputs, labels in self.train_loader:
+        for inputs, labels in tqdm(self.train_loader):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             self.optimizer.zero_grad()
             preds = self.model(inputs)
@@ -124,7 +124,7 @@ class Bengali():
     def __valid_one_epoch(self, log):
         self.model.eval()
         with torch.no_grad():
-            for inputs, labels in self.valid_loader:
+            for inputs, labels in tqdm(self.valid_loader):
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 preds = self.model(inputs)
                 if isinstance(preds, tuple) is False:
