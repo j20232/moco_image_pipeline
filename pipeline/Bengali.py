@@ -1,7 +1,7 @@
 import copy
 import pandas as pd
 import shutil
-import tqdm
+from tqdm import tqdm
 import numpy as np
 from pathlib import Path
 
