@@ -120,7 +120,7 @@ class Bengali():
             loss, log = self.__calc_loss(preds, labels, log, len(self.train_loader))
             loss.backward()
             self.optimizer.step()
-        log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
+        log["acc"] = (log["acc_grapheme"] * 2 + log["acc_vowel"] + log["acc_consonant"]) / 4
         return log
 
     def __valid_one_epoch(self, log):
@@ -132,7 +132,7 @@ class Bengali():
                 if isinstance(preds, tuple) is False:
                     preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
                 loss, log = self.__calc_loss(preds, labels, log, len(self.valid_loader))
-        log["acc"] = (log["acc_grapheme"] + log["acc_vowel"] + log["acc_consonant"]) / 3
+        log["acc"] = (log["acc_grapheme"] * 2 + log["acc_vowel"] + log["acc_consonant"]) / 4
         return log
 
     def __calc_loss(self, preds, labels, log=None, loader_length=1):
