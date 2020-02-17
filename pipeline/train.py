@@ -10,6 +10,8 @@ def main():
     parser = argparse.ArgumentParser(description="Please set the index of the input config file")
     parser.add_argument("competition", help="directory of config files")
     parser.add_argument("index", help="the index of the input config file")
+    parser.add_argument("-l", "--train_on_local", action="store_true",
+                        help="whether to train on the local instance")
     parser.add_argument('-w', '--show_warnings', action='store_false',
                         help="whether to show debug messages")
     competition = parser.parse_args().competition
@@ -24,7 +26,8 @@ def main():
 
     # training
     modulelib = importlib.import_module(competition)
-    classifier = getattr(modulelib, competition)(competition, index, cfg)
+    classifier = getattr(modulelib, competition)(competition, index, cfg,
+                                                 is_local = parser.parse_args().train_on_local)
     classifier.fit()
 
 

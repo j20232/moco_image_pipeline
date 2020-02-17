@@ -1,0 +1,3 @@
+[submodule "pipeline/pipeline/models/local_pretrained_models"]
+	path = pipeline/pipeline/models/local_pretrained_models
+	url = git@github.com:Cadene/pretrained-models.pytorch.git
