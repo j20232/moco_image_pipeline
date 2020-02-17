@@ -1,8 +1,6 @@
 import argparse
 import importlib
 import warnings
-import mlflow
-import mlflow.pytorch
 from pathlib import Path
 from pipeline.utils import seed_everything, read_yaml
 
@@ -27,22 +25,7 @@ def main():
     # training
     modulelib = importlib.import_module(competition)
     classifier = getattr(modulelib, competition)(competition, index, cfg)
-    best_results = classifier.fit()
-
-    # logging
-    with mlflow.start_run(run_name=competition):
-        mlflow.log_param("index", index)
-        for key, value in cfg.items():
-            if type(value) is dict:
-                for k, v in value.items():
-                    mlflow.log_param("{}/{}".format(key, k), v)
-            else:
-                mlflow.log_param(key, value)
-        mlflow.log_metrics(best_results)
-        model_path = Path(".").resolve() / "models" / competition / "{}.pth".format(index)
-        mlflow.log_artifact(str(model_path))
-        print("Saved model at {}".format(model_path))
-    print("Finished!")
+    classifier.fit()
 
 
 if __name__ == "__main__":

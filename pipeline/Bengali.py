@@ -1,6 +1,5 @@
 import copy
 import pandas as pd
-import shutil
 from tqdm import tqdm
 import numpy as np
 from pathlib import Path
@@ -11,20 +10,18 @@ import torch.optim.lr_scheduler as lr_scheduler
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torch.utils.tensorboard import SummaryWriter
 
 import pipeline.augmentation as aug
 from pipeline.datasets import SimpleDataset
 from pipeline.functions.metrics import accuracy
 from pipeline.models import PretrainedCNN
-from pipeline.utils import show_logs
+from pipeline.utils import MLflowWriter, show_logs
 
 GRAPH = 168
 VOWEL = 11
 CONSO = 7
 ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
-LOG_PATH = ROOT_PATH / "logs"
 MODEL_PATH = ROOT_PATH / "models"
 INPUT_PATH = ROOT_PATH / "input"
 TRAIN_IMG_PATH = INPUT_PATH / "train_images"
@@ -44,24 +41,20 @@ class Bengali():
         self.competition_name = name
         self.index = index
         self.cfg = cfg
-        self.n_total_class = GRAPH + VOWEL + CONSO
-        self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class,
-                                   model_name=self.cfg["model"]["name"],
-                                   pretrained=self.cfg["model"]["pretrained"])
-
-        self.competition_model_path = MODEL_PATH / self.competition_name
-        self.competition_model_path.mkdir(parents=True, exist_ok=True)
-        self.check_point_weight_path = self.competition_model_path / f"check_point_{self.index}.pth"
-        if self.check_point_weight_path.exists():
-            print("Loaded check_point ({})".format(self.check_point_weight_path))
-            self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
-
+        self.n_total_class = GRAPH + VOWEL + CONSO 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+        self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class, **self.cfg["model"])
         if is_train:
             self.__set_training()
 
     def __set_training(self):
+        self.model_path = MODEL_PATH / self.competition_name / self.index
+        self.model_path.mkdir(parents=True, exist_ok=True)
+        self.check_point_weight_path = self.model_path / f"check_point_{self.index}.pth"
+        if self.check_point_weight_path.exists():
+            print("Loaded check_point ({})".format(self.check_point_weight_path))
+            self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
+
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
         self.scheduler = getattr(lr_scheduler, self.cfg["scheduler"]["name"])(
@@ -100,7 +93,8 @@ class Bengali():
             results_train = self.__train_one_epoch(train_log)
             results_valid = self.__valid_one_epoch(valid_log)
             show_logs(self.cfg, ep, results_train, results_valid)
-            self.__add_tensorboard(results_train, results_valid, ep)
+            self.__write_training_log(results_train, ep, "Train")
+            self.__write_training_log(results_valid, ep, "Valid")
             if self.__check_early_stopping(results_valid):
                 print("Early stopping at round {}".format(ep))
                 break
@@ -140,7 +134,6 @@ class Bengali():
         loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
         loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
         loss = loss_grapheme + loss_vowel + loss_consonant
-
         log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
         log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
         log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
@@ -149,7 +142,6 @@ class Bengali():
         acc_grapheme = accuracy(preds[0], labels[:, 0])
         acc_vowel = accuracy(preds[1], labels[:, 1])
         acc_consonant = accuracy(preds[2], labels[:, 2])
-
         log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
         log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
@@ -179,36 +171,26 @@ class Bengali():
         self.best_model_weight = copy.deepcopy(self.model.state_dict())
         self.best_results = {"loss": 10000000}
         self.early_stopping_count = 0
-        Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
-        save_path = LOG_PATH / self.competition_name / self.index
-        shutil.rmtree(str(save_path), ignore_errors=True)
-        self.writer = SummaryWriter(log_dir=str(save_path))
+        self.writer = MLflowWriter(self.competition_name, self.index, self.model_path)
+        self.writer.log_param("index", self.index)
+        self.writer.log_cfg(self.cfg)
         print("Initialized the setting of training!")
 
     def __close_fitting(self):
-        torch.save(self.best_model_weight, str(self.competition_model_path / f"{self.index}.pth"))
+        weight_path = str(self.model_path / f"{self.index}.pth")
+        torch.save(self.best_model_weight, weight_path)
+        self.writer.log_metrics(self.best_results)
+        self.writer.log_artifact(weight_path)
         self.writer.close()
         print("Finished training!")
 
-    def __add_tensorboard(self, results_train, results_valid, ep):
-        self.writer.add_scalars("data/loss",
-                                {"train": results_train["loss"],
-                                 "valid": results_valid["loss"]}, ep)
-        self.writer.add_scalars("data/loss_grapheme",
-                                {"train": results_train["loss_grapheme"],
-                                 "valid": results_valid["loss_grapheme"]}, ep)
-        self.writer.add_scalars("data/loss_vowel",
-                                {"train": results_train["loss_vowel"],
-                                 "valid": results_valid["loss_vowel"]}, ep)
-        self.writer.add_scalars("data/loss_consonant",
-                                {"train": results_train["loss_consonant"],
-                                 "valid": results_valid["loss_consonant"]}, ep)
-        self.writer.add_scalars("data/acc",
-                                {"train": results_train["acc"],
-                                 "valid": results_valid["acc"],
-                                 "train_grapheme": results_train["acc_grapheme"],
-                                 "valid_grapheme": results_valid["acc_grapheme"],
-                                 "train_vowel": results_train["acc_vowel"],
-                                 "valid_vowel": results_valid["acc_vowel"],
-                                 "train_consonant": results_train["acc_consonant"],
-                                 "valid_consonant": results_valid["acc_consonant"]}, ep)
+    def __write_training_log(self, results, ep, prefix):
+        self.writer.log_metric(f"{prefix} loss", results["loss"], ep)
+        self.writer.log_metric(f"{prefix} loss grapheme", results["loss_grapheme"], ep)
+        self.writer.log_metric(f"{prefix} loss vowel", results["loss_vowel"], ep)
+        self.writer.log_metric(f"{prefix} loss consonant", results["loss_consonant"], ep)
+        self.writer.log_metric(f"{prefix} acc", results["acc"], ep)
+        self.writer.log_metric(f"{prefix} acc grapheme", results["acc_grapheme"], ep)
+        self.writer.log_metric(f"{prefix} acc vowel", results["acc_vowel"], ep)
+        self.writer.log_metric(f"{prefix} acc consonant", results["acc_consonant"], ep)
+

@@ -47,11 +47,6 @@ python src/main.py
 ---
 
 ## 📈 Visualization
-### TensorBoard
-
-```
-tensorboard --log_dir logs/COMPETITION/INDEX
-```
 
 ### MLFlow
 
