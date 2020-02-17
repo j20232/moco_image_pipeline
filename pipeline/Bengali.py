@@ -93,8 +93,8 @@ class Bengali():
             results_train = self.__train_one_epoch(train_log)
             results_valid = self.__valid_one_epoch(valid_log)
             show_logs(self.cfg, ep, results_train, results_valid)
-            self.__write_training_log(results_train, ep, "Train")
-            self.__write_training_log(results_valid, ep, "Valid")
+            self.__write_training_log(results_train, "Train", ep)
+            self.__write_training_log(results_valid, "Valid", ep)
             if self.__check_early_stopping(results_valid):
                 print("Early stopping at round {}".format(ep))
                 break
@@ -171,7 +171,7 @@ class Bengali():
         self.best_model_weight = copy.deepcopy(self.model.state_dict())
         self.best_results = {"loss": 10000000}
         self.early_stopping_count = 0
-        self.writer = MLflowWriter(self.competition_name, self.index, self.model_path)
+        self.writer = MLflowWriter(self.competition_name, self.index)
         self.writer.log_param("index", self.index)
         self.writer.log_cfg(self.cfg)
         print("Initialized the setting of training!")
@@ -179,18 +179,18 @@ class Bengali():
     def __close_fitting(self):
         weight_path = str(self.model_path / f"{self.index}.pth")
         torch.save(self.best_model_weight, weight_path)
-        self.writer.log_metrics(self.best_results)
+        self.__write_training_log(self.best_results, "CV")
         self.writer.log_artifact(weight_path)
         self.writer.close()
         print("Finished training!")
 
-    def __write_training_log(self, results, ep, prefix):
-        self.writer.log_metric(f"{prefix} loss", results["loss"], ep)
-        self.writer.log_metric(f"{prefix} loss grapheme", results["loss_grapheme"], ep)
-        self.writer.log_metric(f"{prefix} loss vowel", results["loss_vowel"], ep)
-        self.writer.log_metric(f"{prefix} loss consonant", results["loss_consonant"], ep)
-        self.writer.log_metric(f"{prefix} acc", results["acc"], ep)
-        self.writer.log_metric(f"{prefix} acc grapheme", results["acc_grapheme"], ep)
-        self.writer.log_metric(f"{prefix} acc vowel", results["acc_vowel"], ep)
-        self.writer.log_metric(f"{prefix} acc consonant", results["acc_consonant"], ep)
+    def __write_training_log(self, results, postfix, ep=None):
+        self.writer.log_metric(f"loss_{postfix}", results["loss"], ep)
+        self.writer.log_metric(f"acc_{postfix}", results["acc"], ep)
+        self.writer.log_metric(f"loss_grapheme_{postfix}", results["loss_grapheme"], ep)
+        self.writer.log_metric(f"acc_grapheme_{postfix}", results["acc_grapheme"], ep)
+        self.writer.log_metric(f"loss_vowel_{postfix}", results["loss_vowel"], ep)
+        self.writer.log_metric(f"acc_vowel_{postfix}", results["acc_vowel"], ep)
+        self.writer.log_metric(f"loss_consonant_{postfix}", results["loss_consonant"], ep)
+        self.writer.log_metric(f"acc_consonant_{postfix}", results["acc_consonant"], ep)
 
