@@ -41,9 +41,9 @@ class Bengali():
         self.competition_name = name
         self.index = index
         self.cfg = cfg
-        self.n_total_class = GRAPH + VOWEL + CONSO 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = PretrainedCNN(in_channels=3, out_dim=self.n_total_class, **self.cfg["model"])
+        self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
+                                   **self.cfg["model"])
         if is_train:
             self.__set_training()
 
