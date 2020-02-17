@@ -88,3 +88,4 @@ gcloud compute ssh [instance_name] -- -N -f -L [local_port]:localhost:[remote_po
 
 - https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch
 - https://github.com/Ririverce/neural-network-pytorch
+- https://github.com/Cadene/pretrained-models.pytorch
