@@ -25,12 +25,20 @@ poetry run python ./pipeline/train.py bengaliai-cv19 0000
 ### Kaggle Kernel
 To load pipeline in Kaggle kernel, you can use the following command.
 
+[sample.py](https://github.com/j20232/moco_image_pipeline/blob/master/sample.py)
 ```py
 from pipeline import Kernel
+from pathlib import Path
 
-competition_name = "bengaliai-cv19"
-index = "0001"
-kernel = Kernel(competition_name, index)
+if __name__ == "__main__":
+    # Please change here
+    competition_name = "Bengali"
+    index = "0001"
+    input_path = Path(".").resolve() / "input"
+    model_weight_path = Path(".").resolve() / "models" / competition_name / index / f"{index}.pth"
+
+    kernel = Kernel(competition_name, index, input_path, model_weight_path)
+    kernel.predict()
 ```
 
 ---
