@@ -71,8 +71,6 @@ mlflow server -h 0.0.0.0 -p 8888
 python ./tools/create_kaggle_metadata.py [username] [competition] [id]
 ```
 
-- Upload directory to Kaggle dataset
-
 ### Bengali.AI Handwritten Grapheme Classification
 
 - Create image dataset for bengali competition|
