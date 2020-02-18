@@ -12,9 +12,9 @@ Pipeline codes for image tasks
 pipenv run [command] [INDEX]
 ```
 
-|Competition|Train|Script|Config|
-|:-|:-||:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_train`|[Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/Bengali)|
+|Competition|Name|Train|Script|Config|
+|:-|:-|:-|:-|:-|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`Bengali` | `bengali_train`| [Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/Bengali)|
 
 e.g.
 
@@ -30,7 +30,7 @@ To load pipeline in Kaggle kernel, you can use the following command.
 ```py
 from pipeline import Kernel
 
-competition_name = "Test"
+competition_name = "Bengali"
 index = "0001"
 kernel = Kernel(competition_name, index)
 ```
