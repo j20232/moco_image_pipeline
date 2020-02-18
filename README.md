@@ -27,6 +27,7 @@ If you don't use Pipenv, you can get the definition of the commands from [Pipfil
 ### Kaggle Kernel
 To load pipeline in Kaggle kernel, you can use the following command.
 
+[sample.py](https://github.com/j20232/moco_image_pipeline/blob/master/sample.py)
 ```py
 from pipeline import Kernel
 
