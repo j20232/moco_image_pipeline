@@ -9,7 +9,7 @@ Pipeline codes for image tasks
 ### Commands
 
 ```py
-poetry run python ./pipeline/train.py [competition_name] [index]
+python ./pipeline/train.py [competition_name] [index]
 ```
 
 |Competition|Name|Train|Config|
@@ -19,7 +19,7 @@ poetry run python ./pipeline/train.py [competition_name] [index]
 e.g.
 
 ```py
-poetry run python ./pipeline/train.py bengaliai-cv19 0000
+python ./pipeline/train.py bengaliai-cv19 0000
 ```
 
 ### Kaggle Kernel
