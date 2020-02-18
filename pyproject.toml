@@ -1,13 +1,11 @@
 [tool.poetry]
-name = "moco_image_pipeline"
+name = "kaggle"
 version = "0.1.0"
 description = ""
 authors = ["mocobt <mocobt@gmail.com>"]
-license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-Cython = "^0.29.15"
+python = "^3.7"
 jupyter = "^1.0.0"
 notebook = "^6.0.3"
 matplotlib = "^3.1.3"
