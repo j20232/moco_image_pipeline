@@ -1,6 +1,5 @@
 [scripts]
 bengali_train = "pipenv run python ./pipeline/train.py Bengali"
-bengali_test = "pipenv run python ./pipeline/test.py Bengali"
 bengali_parquet = "pipenv run python ./tools/convert_parquet2png.py"
 local_mlflow = "mlflow server -h 0.0.0.0 -p 8888"
 dataset = "pipenv run python ./tools/create_kaggle_metadata.py noroaspe"
