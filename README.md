@@ -43,26 +43,6 @@ if __name__ == "__main__":
 
 ---
 
-## 🐳 Docker
-### Run the container
-
-```
-docker-compose build
-docker-compose up -d
-```
-** Now debugging **
-
-### Run commands
-
-```
-docker exec -it bengali bash
-python src/main.py
-```
-
-** Now debugging **
-
----
-
 ## 📈 Visualization
 
 ### MLFlow
