@@ -25,7 +25,6 @@ CONFIG_PATH = ROOT_PATH / "config"
 MODEL_PATH = ROOT_PATH / "models"
 INPUT_PATH = ROOT_PATH / "input"
 TRAIN_IMG_PATH = INPUT_PATH / "train_images"
-SUB_CSV_PATH = INPUT_PATH / "sample_submission.csv"
 
 
 # dirty

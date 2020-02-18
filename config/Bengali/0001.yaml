@@ -9,7 +9,7 @@ params:
   verbose: 1
   num_workers: 4
 model:
-  name: "se_resnext50_32x4d"
+  model_name: "se_resnext50_32x4d"
   pretrained: "imagenet" # e.g. 'imagenet'
 optim:
   name: "Adam"

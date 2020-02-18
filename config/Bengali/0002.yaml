@@ -9,7 +9,7 @@ params:
   verbose: 1
   num_workers: 4
 model:
-  name: "resnet18"
+  model_name: "resnet18"
   pretrained: "imagenet" # e.g. 'imagenet'
 optim:
   name: "Adam"
