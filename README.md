@@ -9,11 +9,11 @@ Pipeline codes for image tasks
 ### Commands
 
 ```py
-python ./pipeline/train.py [competition_name] [index]
+poetry run python ./pipeline/train.py [competition_name] [index]
 ```
 
 |Competition|Name|Train|Config|
-|:-|:-|:-|:-|:-|
+|:-|:-|:-|:-|
 |[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengaliai-cv19` | [Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/bengaliai-cv19")|
 
 e.g.
