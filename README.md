@@ -26,7 +26,7 @@ If you don't use Pipenv, you can get the definition of the commands from [Pipfil
 
 To load pipeline in Kaggle kernel, you can use the following command.
 
-```
+```py
 from pipeline import Kernel
 
 competition_name = "Test"
