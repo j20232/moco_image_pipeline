@@ -1,21 +1,25 @@
 import copy
-import pandas as pd
-from tqdm import tqdm
-import numpy as np
 from pathlib import Path
 
-import torch
-import torch.optim as optim
-import torch.optim.lr_scheduler as lr_scheduler
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-from torchvision import transforms
+import numpy as np
+
+import pandas as pd
 
 import pipeline.augmentation as aug
 from pipeline.datasets import SimpleDataset
 from pipeline.functions.metrics import accuracy
 from pipeline.models import PretrainedCNN
 from pipeline.utils import MLflowWriter, show_logs
+
+import torch
+import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
+from torch.nn import functional as F
+from torch.utils.data import DataLoader
+
+from torchvision import transforms
+
+from tqdm import tqdm
 
 GRAPH = 168
 VOWEL = 11
@@ -24,7 +28,6 @@ ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
 MODEL_PATH = ROOT_PATH / "models"
 INPUT_PATH = ROOT_PATH / "input"
-TRAIN_IMG_PATH = INPUT_PATH / "train_images"
 
 
 # dirty
@@ -61,15 +64,16 @@ class Bengali():
         self.__create_validation_set()
 
     def __create_validation_set(self):
-        train_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["train"])
+        train_df = pd.read_csv(INPUT_PATH / self.competition_name / self.cfg["dataset"]["train"])
         self.train_loader = self.__get_train_dataloader(train_df, True)
-        valid_df = pd.read_csv(INPUT_PATH / self.cfg["dataset"]["valid"])
+        valid_df = pd.read_csv(INPUT_PATH / self.competition_name / self.cfg["dataset"]["valid"])
         self.valid_loader = self.__get_train_dataloader(valid_df, False)
         print("Loaded train and validation dataset!")
 
     def __get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
-        paths = [Path(TRAIN_IMG_PATH / f"{x}.png") for x in df["image_id"].values]
+        train_img_path = INPUT_PATH / self.competition_name / "train_images"
+        paths = [Path(train_img_path / f"{x}.png") for x in df["image_id"].values]
         labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
         tfms = []
         for tfm_dict in self.cfg["transform"]:
@@ -192,4 +196,3 @@ class Bengali():
         self.writer.log_metric(f"acc_vowel_{postfix}", results["acc_vowel"], ep)
         self.writer.log_metric(f"loss_consonant_{postfix}", results["loss_consonant"], ep)
         self.writer.log_metric(f"acc_consonant_{postfix}", results["acc_consonant"], ep)
-

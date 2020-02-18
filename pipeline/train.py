@@ -18,6 +18,7 @@ def main():
     index = parser.parse_args().index
     config_path = Path(".").resolve() / "config"
     cfg = read_yaml(config_path / competition / f"{index}.yaml")
+    competiions = read_yaml(Path(".").resolve() / "competition.yaml")
 
     # initialization
     if parser.parse_args().show_warnings:
@@ -25,9 +26,10 @@ def main():
     seed_everything(cfg["seed"])
 
     # training
-    modulelib = importlib.import_module(competition)
-    classifier = getattr(modulelib, competition)(competition, index, cfg,
-                                                 is_local = parser.parse_args().train_on_local)
+    small_name = competiions[competition]
+    modulelib = importlib.import_module(small_name)
+    classifier = getattr(modulelib, small_name)(competition, index, cfg,
+                                                is_local=parser.parse_args().train_on_local)
     classifier.fit()
 
 

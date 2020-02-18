@@ -8,21 +8,19 @@ Pipeline codes for image tasks
 
 ### Commands
 
-```
-pipenv run [command] [INDEX]
+```py
+python ./pipeline/train.py [competition_name] [index]
 ```
 
-|Competition|Name|Train|Script|Config|
+|Competition|Name|Train|Config|
 |:-|:-|:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`Bengali` | `bengali_train`| [Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/Bengali)|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengaliai-cv19` | [Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/bengali/tree/master/config/bengaliai-cv19")|
 
 e.g.
 
+```py
+poetry run python ./pipeline/train.py bengaliai-cv19 0000
 ```
-pipenv run bengali_train 0000
-```
-
-If you don't use Pipenv, you can get the definition of the commands from [Pipfile](https://github.com/j20232/bengali/blob/master/Pipfile).
 
 ### Kaggle Kernel
 To load pipeline in Kaggle kernel, you can use the following command.
@@ -30,7 +28,7 @@ To load pipeline in Kaggle kernel, you can use the following command.
 ```py
 from pipeline import Kernel
 
-competition_name = "Bengali"
+competition_name = "bengaliai-cv19"
 index = "0001"
 kernel = Kernel(competition_name, index)
 ```
@@ -70,18 +68,30 @@ mlflow server -h [ip] -p [port]
 - local
 
 ```
-pipenv run local_mlflow
+mlflow server -h 0.0.0.0 -p 8888
 ```
 
 ---
 
 ## 🛠 Tools
 
-|Competition|Command|Meaning|
-|:-|:-|:-|
-|General|`dataset [COMPETITION] [ID]`|Create metadata.json for Kaggle dataset at local env.|
-|General|`upload`|Upload `./upload` directory to Kaggle dataset|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengali_parquet`|Create image dataset for bengali competition|
+### General
+
+- Create kaggle metadata
+
+```py
+python ./tools/create_kaggle_metadata.py [username] [competition] [id]
+```
+
+- Upload directory to Kaggle dataset
+
+### Bengali.AI Handwritten Grapheme Classification
+
+- Create image dataset for bengali competition|
+
+```py
+python ./tools/convert_parquet2png.py
+```
 
 ---
 

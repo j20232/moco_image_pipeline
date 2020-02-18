@@ -6,7 +6,7 @@ from .pipeline.models import PretrainedCNN
 GRAPH = 168
 VOWEL = 11
 CONSO = 7
-FILES =[
+FILES = [
     "test_image_data_0.parquet.zip",
     "test_image_data_1.parquet.zip",
     "test_image_data_2.parquet.zip",
@@ -25,8 +25,9 @@ class BengaliKernel():
         self.model = self.model.to(self.device)
         print("Loaded pretrained model: {}".format(model_weight_path))
         self.read_input_parquets(input_path, cache_dir)
-    
+
     def read_input_files(self, input_path, cache_dir):
+
         assert False
 
     def define_dataloader(self):
