@@ -35,7 +35,7 @@ class Normalizer():
 
 class BengaliKernel():
 
-    def __init__(self, competition, cfg, input_path, model_weight_path):
+    def __init__(self, competition, cfg, input_path, model_weight_path, output_path):
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
@@ -44,7 +44,8 @@ class BengaliKernel():
         self.model = self.model.to(self.device)
         print("Loaded pretrained model: {}".format(model_weight_path))
         self.input_path = input_path / competition
-        self.cache_dir = self.input_path / "cache"
+        self.output_path = output_path
+        self.cache_dir = output_path / "cache"
         self.read_input_parquets()
 
     def read_input_parquets(self):
@@ -60,8 +61,8 @@ class BengaliKernel():
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         for f in test_zipfiles:
             with zipfile.ZipFile(f) as test_zip:
-                test_zip.extractall(self.input_path)
-            parquet_file = "{}.parquet".format(str(f).split(".")[0])
+                test_zip.extractall(self.output_path)
+            parquet_file = self.output_path / "{}.parquet".format(str(f.stem).split(".")[0])
             img_df = pd.read_parquet(parquet_file, engine="pyarrow")
             for idx in tqdm(range(len(img_df))):
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
@@ -123,5 +124,5 @@ class BengaliKernel():
             c = np.argmax(conso_df.query("image_id=='Test_{}'".format(i)).values[0])
             target += [g, v, c]
         submission_df = pd.DataFrame({'row_id': row_id, 'target': target})
-        submission_df.to_csv(self.input_path / 'submission.csv', index=False)
+        submission_df.to_csv(self.output_path / 'submission.csv', index=False)
         print("Done")
