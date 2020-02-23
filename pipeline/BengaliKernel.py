@@ -54,16 +54,13 @@ class BengaliKernel():
             return
         gc.enable()
         print("Reading input parquet files...")
-        test_zipfiles = [self.input_path / "test_image_data_0.parquet.zip",
-                         self.input_path / "test_image_data_1.parquet.zip",
-                         self.input_path / "test_image_data_2.parquet.zip",
-                         self.input_path / "test_image_data_3.parquet.zip"]
+        test_files = [self.input_path / "test_image_data_0.parquet",
+                      self.input_path / "test_image_data_1.parquet",
+                      self.input_path / "test_image_data_2.parquet",
+                      self.input_path / "test_image_data_3.parquet"]
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        for f in test_zipfiles:
-            with zipfile.ZipFile(f) as test_zip:
-                test_zip.extractall(self.output_path)
-            parquet_file = self.output_path / "{}.parquet".format(str(f.stem).split(".")[0])
-            img_df = pd.read_parquet(parquet_file, engine="pyarrow")
+        for f in test_files:
+            img_df = pd.read_parquet(f, engine="pyarrow")
             for idx in tqdm(range(len(img_df))):
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
                 img = (img0 * (255.0 / img0.max())).astype(np.uint8)
