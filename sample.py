@@ -15,4 +15,4 @@ if __name__ == "__main__":
 
     kernel = Kernel(competition_name, input_path, config_path, competition_yaml_path,
                     model_weight_path, output_path)
-    output = kernel.predict()
+    kernel.predict()
