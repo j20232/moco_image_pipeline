@@ -1,9 +1,10 @@
-import mlflow
-from mlflow.tracking import MlflowClient
+import importlib
+
 
 class MLflowWriter():
     def __init__(self, competition_name, index, **kwargs):
-        self.client = MlflowClient(**kwargs)
+        mlflow = importlib.import_module("mlflow")
+        self.client = mlflow.tracking.MlflowClient(**kwargs)
         try:
             self.experiment_id = self.client.create_experiment(competition_name)
         except:
