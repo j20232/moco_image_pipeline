@@ -45,6 +45,8 @@ if __name__ == "__main__":
     kernel.predict()
 ```
 
+If you want to ensemble submissions, please use `kernel.predict_for_ensemble()`.  
+
 ---
 
 ## 📈 Visualization
