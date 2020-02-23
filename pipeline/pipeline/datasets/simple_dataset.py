@@ -19,4 +19,5 @@ class SimpleDataset(Dataset):
         x = x.astype(np.float32) / 255.
         if self.transform:
             x = self.transform(x)
-        return x, self.labels[i] if self.is_train else x
+
+        return (x, self.labels[i]) if self.is_train else (x, str(self.paths[i]))
