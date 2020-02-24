@@ -114,12 +114,18 @@ class BengaliKernel():
     def predict(self):
         grapheme_df, vowel_df, conso_df = self.predict_for_ensemble()
         ids = grapheme_df.index.values
-        row_id = [[f"{s}_grapheme_root", f"{s}_vowel_diacritic", f"{s}_consonant_diacritic"] for s in ids]
+        g_ids = [f"{s}_grapheme_root" for s in ids]
+        v_ids = [f"{s}_vowel_diacritic" for s in ids]
+        c_ids = [f"{s}_consonant_diacritic" for s in ids]
+        row_id = np.stack([g_ids, v_ids, c_ids], 1)
+        row_id = row_id.flatten()
         g = np.argmax(grapheme_df.values, axis=1)
         v = np.argmax(vowel_df.values, axis=1)
         c = np.argmax(conso_df.values, axis=1)
-        target = [[g[i], v[i], c[i]] for i in range(len(g))]
+        target = np.stack([g, v, c], 1)
+        target = target.flatten()
         submission_df = pd.DataFrame({'row_id': row_id, 'target': target})
         submission_df.to_csv(self.output_path / 'submission.csv', index=False)
+        print(submission_df.head(10))
         print("Submission length: ", len(submission_df))
         print("Done")
