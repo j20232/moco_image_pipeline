@@ -35,7 +35,7 @@ class BengaliKernel():
     def __init__(self, competition, cfg, input_path, model_weight_path, output_path):
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
+        self.model = PretrainedCNN(in_channels=1, out_dim=GRAPH + VOWEL + CONSO,
                                    is_local=True, **self.cfg["model"])
         self.model.load_state_dict(torch.load(str(model_weight_path), map_location=self.device))
         self.model = self.model.to(self.device)
@@ -61,7 +61,6 @@ class BengaliKernel():
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
                 img = (img0 * (255.0 / img0.max())).astype(np.uint8)
                 img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
-                img = np.dstack((img, img, img))
                 name = img_df.iloc[idx, 0]
                 imgs.append(img)
                 paths.append(name)

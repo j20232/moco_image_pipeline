@@ -6,7 +6,7 @@ from mcp import Kernel
 if __name__ == "__main__":
     # Please change here
     competition_name = "bengaliai-cv19"
-    index = "0001"
+    index = "0000"
     input_path = Path(".").resolve() / "input"
     model_weight_path = Path(".").resolve() / "models" / competition_name / index / f"{index}.pth"
     config_path = Path(".").resolve() / "config" / competition_name / f"{index}.yaml"

@@ -4,6 +4,7 @@ from torch.utils.data.dataset import Dataset
 
 
 class SimpleDataset(Dataset):
+    # single channel
     def __init__(self, paths, labels=None, transform=None):
         self.paths = paths
         self.labels = labels
@@ -16,7 +17,7 @@ class SimpleDataset(Dataset):
     def __getitem__(self, i):
         x = cv2.imread(str(self.paths[i]))
         # x = (255 - x).astype(np.float32) / 255.
-        x = x.astype(np.float32) / 255.
+        x = x[:, :, 0].astype(np.float32) / 255.
         if self.transform:
             x = self.transform(x)
 
