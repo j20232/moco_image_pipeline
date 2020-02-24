@@ -19,12 +19,6 @@ from mcp.utils.convert import crop_and_resize_img
 GRAPH = 168
 VOWEL = 11
 CONSO = 7
-FILES = [
-    "test_image_data_0.parquet.zip",
-    "test_image_data_1.parquet.zip",
-    "test_image_data_2.parquet.zip",
-    "test_image_data_3.parquet.zip"
-]
 SIZE = 128
 WIDTH = 236
 HEIGHT = 137
