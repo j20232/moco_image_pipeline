@@ -8,7 +8,7 @@ Pipeline codes for image tasks
 
 ## 🏃‍♂️ Quick Start
 
-### Commands
+### Training
 
 ```py
 python train.py [competition_name] [index]
@@ -24,8 +24,8 @@ e.g.
 python train.py bengaliai-cv19 0000
 ```
 
-### Kaggle Kernel
-To load pipeline in Kaggle kernel, you can use the following command.
+### Submission at Kaggle Kernel
+To load pipeline in Kaggle kernel, you can use this module as follows.
 
 [kernel_sample.py](https://github.com/j20232/moco_image_pipeline/blob/master/kernel_sample.py)
 
