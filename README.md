@@ -9,7 +9,7 @@ Pipeline codes for image tasks
 ### Commands
 
 ```py
-python ./pipeline/train.py [competition_name] [index]
+python train.py [competition_name] [index]
 ```
 
 |Competition|Name|Train|Config|
@@ -19,15 +19,16 @@ python ./pipeline/train.py [competition_name] [index]
 e.g.
 
 ```py
-python ./pipeline/train.py bengaliai-cv19 0000
+python train.py bengaliai-cv19 0000
 ```
 
 ### Kaggle Kernel
 To load pipeline in Kaggle kernel, you can use the following command.
 
-[sample.py](https://github.com/j20232/moco_image_pipeline/blob/master/sample.py)
+[kernel_sample.py](https://github.com/j20232/moco_image_pipeline/blob/master/kernel_sample.py)
+
 ```py
-from pipeline import Kernel
+from mcp import Kernel
 from pathlib import Path
 
 if __name__ == "__main__":
