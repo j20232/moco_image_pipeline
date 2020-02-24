@@ -21,3 +21,19 @@ class SimpleDataset(Dataset):
             x = self.transform(x)
 
         return (x, self.labels[i]) if self.is_train else (x, str(self.paths[i]))
+
+
+class SimpleDatasetNoCache(Dataset):
+
+    def __init__(self, imgs, paths, transform=None):
+        self.imgs = imgs
+        self.paths = paths
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.paths)
+
+    def __getitem__(self, i):
+        x = self.imgs[i].astype(np.float32) / 255.
+        x = self.transform(x)
+        return (x, str(self.paths[i]))

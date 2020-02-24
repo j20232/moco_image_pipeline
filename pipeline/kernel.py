@@ -13,8 +13,5 @@ class Kernel():
         self.model = getattr(modulelib, module_name)(competition, cfg, input_path,
                                                      weight_path, output_path)
 
-    def predict_for_ensemble(self):
-        return self.model.predict_for_ensemble()
-
     def predict(self):
         self.model.predict()
