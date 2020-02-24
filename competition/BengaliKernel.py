@@ -4,6 +4,7 @@ import sys
 import gc
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 import cv2
 import torch
 import torch.nn.functional as F
@@ -43,6 +44,7 @@ class BengaliKernel():
         self.output_path = output_path
         self.cache_dir = output_path / "cache"
 
+    @profile
     def predict(self):
         gc.enable()
         print("Reading input parquet files...")
@@ -53,7 +55,7 @@ class BengaliKernel():
         row_id = None
         target = None
         for f in test_files:
-            img_df = pd.read_parquet(f, engine="pyarrow")
+            img_df = pq.read_pandas(f).to_pandas()
             imgs = []
             paths = []
             for idx in range(len(img_df)):
@@ -67,20 +69,18 @@ class BengaliKernel():
             loader = DataLoader(SimpleDatasetNoCache(imgs, paths, transform=transforms.Compose(tfms)),
                                 batch_size=self.cfg["params"]["test_batch_size"], shuffle=False,
                                 num_workers=self.cfg["params"]["num_workers"])
-            grapheme_df, vowel_df, conso_df = self.predict_for_ensemble(loader)
-
-            ids = grapheme_df.index.values
-            g_ids = [f"{s}_grapheme_root" for s in ids]
-            v_ids = [f"{s}_vowel_diacritic" for s in ids]
-            c_ids = [f"{s}_consonant_diacritic" for s in ids]
+            names, graph, vowel, conso = self.predict_for_ensemble(loader)
+            g_ids = [f"{s}_grapheme_root" for s in names]
+            v_ids = [f"{s}_vowel_diacritic" for s in names]
+            c_ids = [f"{s}_consonant_diacritic" for s in names]
             r = np.stack([g_ids, v_ids, c_ids], 1)
             row_id = np.append(row_id, r.flatten()) if row_id is not None else r.flatten()
-            g = np.argmax(grapheme_df.values, axis=1)
-            v = np.argmax(vowel_df.values, axis=1)
-            c = np.argmax(conso_df.values, axis=1)
+            g = np.argmax(graph, axis=1)
+            v = np.argmax(vowel, axis=1)
+            c = np.argmax(conso, axis=1)
             t = np.stack([g, v, c], 1)
             target = np.append(target, t.flatten()) if target is not None else t.flatten()
-            del grapheme_df, vowel_df, conso_df
+            del graph, vowel, conso
             del g_ids, v_ids, c_ids, r
             del g, v, c, t
             del imgs, paths
@@ -101,6 +101,7 @@ class BengaliKernel():
         test_dataloader = DataLoader(SimpleDataset(self.img_paths, transform=transforms.Compose(tfms)),
                                      batch_size=self.cfg["params"]["test_batch_size"], shuffle=False,
                                      num_workers=self.cfg["params"]["num_workers"])
+        """
         grapheme_df, vowel_df, conso_df = self.predict_for_ensemble(test_dataloader)
         ids = grapheme_df.index.values
         g_ids = [f"{s}_grapheme_root" for s in ids]
@@ -118,6 +119,7 @@ class BengaliKernel():
         print(submission_df.head(10))
         print("Submission length: ", len(submission_df))
         print("Done")
+        """
 
     # --------------------------------------- Utils ---------------------------------------
 
@@ -133,7 +135,7 @@ class BengaliKernel():
                       self.input_path / "test_image_data_3.parquet"]
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         for f in test_files:
-            img_df = pd.read_parquet(f, engine="pyarrow")
+            img_df = pd.read_parquet(f)
             for idx in range(len(img_df)):
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
                 img = (img0 * (255.0 / img0.max())).astype(np.uint8)
@@ -163,16 +165,4 @@ class BengaliKernel():
                 graph = prob_graph if graph is None else np.append(graph, prob_graph, axis=0)
                 vowel = prob_vowel if vowel is None else np.append(vowel, prob_vowel, axis=0)
                 conso = prob_conso if conso is None else np.append(conso, prob_conso, axis=0)
-        grapheme_df = pd.DataFrame(graph)
-        vowel_df = pd.DataFrame(vowel)
-        conso_df = pd.DataFrame(conso)
-        grapheme_df["image_id"] = names
-        grapheme_df = grapheme_df.set_index(["image_id"])
-        grapheme_df.sort_index(inplace=True)
-        vowel_df["image_id"] = names
-        vowel_df = vowel_df.set_index(["image_id"])
-        vowel_df.sort_index(inplace=True)
-        conso_df["image_id"] = names
-        conso_df = conso_df.set_index(["image_id"])
-        conso_df.sort_index(inplace=True)
-        return grapheme_df, vowel_df, conso_df
+        return names, graph, vowel, conso
