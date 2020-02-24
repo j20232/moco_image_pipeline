@@ -1,5 +1,7 @@
 # 🐅 Moco Image Pipeline
-## 🙃 About
+
+![](https://github.com/j20232/moco_image_pipeline/blob/master/assets/log.png)
+
 Pipeline codes for image tasks
 
 ---
@@ -14,7 +16,7 @@ python train.py [competition_name] [index]
 
 |Competition|Name|Train|Prediction|Config|
 |:-|:-|:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengaliai-cv19` | [Link](https://github.com/j20232/bengali/blob/master/competition/Bengali.py) | [Link](https://github.com/j20232/bengali/blob/master/competition/BengaliKernel.py) |[Link](https://github.com/j20232/moco_image_pipeline/tree/master/config/bengaliai-cv19")|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengaliai-cv19` | [Link](https://github.com/j20232/moco_image_pipeline/blob/master/competition/Bengali.py) | [Link](https://github.com/j20232/moco_image_pipeline/blob/master/competition/BengaliKernel.py) |[Link](https://github.com/j20232/moco_image_pipeline/tree/master/config/bengaliai-cv19")|
 
 e.g.
 
