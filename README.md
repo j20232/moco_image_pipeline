@@ -12,9 +12,9 @@ Pipeline codes for image tasks
 python train.py [competition_name] [index]
 ```
 
-|Competition|Name|Train|Config|
-|:-|:-|:-|:-|
-|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengaliai-cv19` | [Link](https://github.com/j20232/bengali/blob/master/pipeline/Bengali.py)|[Link](https://github.com/j20232/moco_image_pipeline/tree/master/config/bengaliai-cv19")|
+|Competition|Name|Train|Prediction|Config|
+|:-|:-|:-|:-|:-|
+|[Bengali.AI Handwritten Grapheme Classification](https://www.kaggle.com/c/bengaliai-cv19)|`bengaliai-cv19` | [Link](https://github.com/j20232/bengali/blob/master/competition/Bengali.py) | [Link](https://github.com/j20232/bengali/blob/master/competition/BengaliKernel.py) |[Link](https://github.com/j20232/moco_image_pipeline/tree/master/config/bengaliai-cv19")|
 
 e.g.
 
@@ -50,21 +50,13 @@ If you want to ensemble submissions, please use `kernel.predict_for_ensemble()`.
 
 ---
 
-## 📈 Visualization
-
-### MLFlow
-
-- Remote
+## 📈 MLFlow
 
 ```
 mlflow server -h [ip] -p [port]
 ```
 
-- local
-
-```
-mlflow server -h 0.0.0.0 -p 8888
-```
+local: `ip: 0.0.0.0`, `port: 8888`
 
 ---
 
