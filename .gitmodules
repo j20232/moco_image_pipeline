@@ -1,3 +1,6 @@
 [submodule "pipeline/pipeline/models/local_pretrained_models"]
 	path = pipeline/pipeline/models/local_pretrained_models
 	url = https://github.com/Cadene/pretrained-models.pytorch.git
+[submodule "mcp/models/local_pretrained_models"]
+	path = mcp/models/local_pretrained_models
+	url = https://github.com/Cadene/pretrained-models.pytorch.git
