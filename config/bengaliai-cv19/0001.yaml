@@ -5,7 +5,7 @@ dataset:
 params:
   epochs: 100
   batch_size: 128
-  test_batch_size: 4
+  test_batch_size: 128
   es_rounds: 10
   verbose: 1
   num_workers: 4

@@ -1,5 +1,4 @@
 import gc
-import zipfile
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -103,23 +102,24 @@ class BengaliKernel():
         conso_df = pd.DataFrame(conso)
         grapheme_df["image_id"] = names
         grapheme_df = grapheme_df.set_index(["image_id"])
+        grapheme_df.sort_index(inplace=True)
         vowel_df["image_id"] = names
         vowel_df = vowel_df.set_index(["image_id"])
+        vowel_df.sort_index(inplace=True)
         conso_df["image_id"] = names
         conso_df = conso_df.set_index(["image_id"])
+        conso_df.sort_index(inplace=True)
         return grapheme_df, vowel_df, conso_df
 
     def predict(self):
         grapheme_df, vowel_df, conso_df = self.predict_for_ensemble()
-        row_id = []
-        target = []
-        for i in tqdm(range(len(self.img_paths))):
-            row_id += [f'Test_{i}_grapheme_root', f'Test_{i}_vowel_diacritic',
-                       f'Test_{i}_consonant_diacritic']
-            g = np.argmax(grapheme_df.query("image_id=='Test_{}'".format(i)).values[0])
-            v = np.argmax(vowel_df.query("image_id=='Test_{}'".format(i)).values[0])
-            c = np.argmax(conso_df.query("image_id=='Test_{}'".format(i)).values[0])
-            target += [g, v, c]
+        ids = grapheme_df.index.values
+        row_id = [[f"{s}_grapheme_root", f"{s}_vowel_diacritic", f"{s}_consonant_diacritic"] for s in ids]
+        g = np.argmax(grapheme_df.values, axis=1)
+        v = np.argmax(vowel_df.values, axis=1)
+        c = np.argmax(conso_df.values, axis=1)
+        target = [[g[i], v[i], c[i]] for i in range(len(g))]
         submission_df = pd.DataFrame({'row_id': row_id, 'target': target})
         submission_df.to_csv(self.output_path / 'submission.csv', index=False)
+        print("Submission length: ", len(submission_df))
         print("Done")
