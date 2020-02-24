@@ -2,7 +2,6 @@ import os
 import sys
 
 import gc
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import cv2
@@ -57,7 +56,7 @@ class BengaliKernel():
             img_df = pd.read_parquet(f, engine="pyarrow")
             imgs = []
             paths = []
-            for idx in tqdm(range(len(img_df))):
+            for idx in range(len(img_df)):
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
                 img = (img0 * (255.0 / img0.max())).astype(np.uint8)
                 img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
@@ -132,7 +131,7 @@ class BengaliKernel():
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         for f in test_files:
             img_df = pd.read_parquet(f, engine="pyarrow")
-            for idx in tqdm(range(len(img_df))):
+            for idx in range(len(img_df)):
                 img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
                 img = (img0 * (255.0 / img0.max())).astype(np.uint8)
                 img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
@@ -149,7 +148,7 @@ class BengaliKernel():
         vowel = None
         conso = None
         with torch.no_grad():
-            for imgs, paths in tqdm(test_dataloader):
+            for imgs, paths in test_dataloader:
                 imgs = imgs.to(self.device)
                 preds = self.model(imgs)
                 if isinstance(preds, tuple) is False:
