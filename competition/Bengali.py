@@ -1,21 +1,18 @@
 import os
 import sys
-
+import gc
 import copy
+import zipfile
 from pathlib import Path
-
 import numpy as np
-
 import pandas as pd
-
+import cv2
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
-
 from torchvision import transforms
-
 from tqdm import tqdm
 
 sys.path.append(os.path.join(".."))
@@ -23,7 +20,7 @@ import mcp.augmentation as aug
 from mcp.datasets import SimpleDataset
 from mcp.functions.metrics import accuracy
 from mcp.models import PretrainedCNN
-from mcp.utils import MLflowWriter, show_logs
+from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 
 
 GRAPH = 168
@@ -33,7 +30,11 @@ ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
 MODEL_PATH = ROOT_PATH / "models"
 INPUT_PATH = ROOT_PATH / "input"
-
+TRAIN_DIR = INPUT_PATH / "train_images"
+TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
+                  "train_image_data_1.parquet.zip",
+                  "train_image_data_2.parquet.zip",
+                  "train_image_data_3.parquet.zip"]
 
 # dirty
 class Normalizer():
@@ -201,3 +202,27 @@ class Bengali():
         self.writer.log_metric(f"acc_vowel_{postfix}", results["acc_vowel"], ep)
         self.writer.log_metric(f"loss_consonant_{postfix}", results["loss_consonant"], ep)
         self.writer.log_metric(f"acc_consonant_{postfix}", results["acc_consonant"], ep)
+
+
+def convert_parquet2png():
+    SIZE = 128
+    WIDTH = 236
+    HEIGHT = 137
+    gc.enable()
+    print("INPUT_PATH: ", INPUT_PATH)
+    for zip_file in TRAIN_ZIPFILES:
+        dir_name = zip_file.split(".")[0]
+        Path(TRAIN_DIR).mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(INPUT_PATH / zip_file) as existing_zip:
+            parquet_file = INPUT_PATH / "{}.parquet".format(dir_name)
+            if os.path.exists(parquet_file) is False:
+                existing_zip.extractall(INPUT_PATH)
+            img_df = pd.read_parquet(parquet_file)
+            for idx in tqdm(range(len(img_df))):
+                img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
+                img = (img0 * (255.0 / img0.max())).astype(np.uint8)
+                img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
+                name = img_df.iloc[idx, 0]
+                cv2.imwrite(str(TRAIN_DIR / f"{name}.png"), img)
+            del img_df
+            gc.collect()

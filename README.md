@@ -68,26 +68,6 @@ mlflow server -h 0.0.0.0 -p 8888
 
 ---
 
-## 🛠 Tools
-
-### General
-
-- Create kaggle metadata
-
-```py
-python ./tools/create_kaggle_metadata.py [username] [competition] [id]
-```
-
-### Bengali.AI Handwritten Grapheme Classification
-
-- Create image dataset for bengali competition|
-
-```py
-python ./tools/convert_parquet2png.py
-```
-
----
-
 ## 📭GCP
 
 Port Forwarding
@@ -100,6 +80,4 @@ gcloud compute ssh [instance_name] -- -N -f -L [local_port]:localhost:[remote_po
 
 ## 👏 Special Thanks
 
-- https://www.kaggle.com/corochann/bengali-seresnext-training-with-pytorch
-- https://github.com/Ririverce/neural-network-pytorch
 - https://github.com/Cadene/pretrained-models.pytorch
