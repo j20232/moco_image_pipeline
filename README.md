@@ -1,6 +1,6 @@
 # 🐅 Moco Image Pipeline
 
-![](https://github.com/j20232/moco_image_pipeline/blob/master/assets/log.png)
+![](https://github.com/j20232/moco_image_pipeline/blob/master/assets/logo.png)
 
 Pipeline codes for image tasks
 
