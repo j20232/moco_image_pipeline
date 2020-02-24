@@ -69,9 +69,3 @@ Port Forwarding
 ```
 gcloud compute ssh [instance_name] -- -N -f -L [local_port]:localhost:[remote_port]
 ```
-
----
-
-## 👏 Special Thanks
-
-- https://github.com/Cadene/pretrained-models.pytorch
