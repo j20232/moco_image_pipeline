@@ -80,6 +80,9 @@ class BengaliKernel():
             c = np.argmax(conso_df.values, axis=1)
             t = np.stack([g, v, c], 1)
             target = np.append(target, t.flatten()) if target is not None else t.flatten()
+            del grapheme_df, vowel_df, conso_df
+            del g_ids, v_ids, c_ids, r
+            del g, v, c, t
             del imgs, paths
             gc.collect()
 
