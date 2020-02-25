@@ -44,7 +44,6 @@ class BengaliKernel():
         self.output_path = output_path
         self.cache_dir = output_path / "cache"
 
-    @profile
     def predict(self):
         gc.enable()
         print("Reading input parquet files...")
