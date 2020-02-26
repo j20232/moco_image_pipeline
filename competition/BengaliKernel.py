@@ -44,7 +44,10 @@ class BengaliKernel():
         self.output_path = output_path
         self.cache_dir = output_path / "cache"
 
-    @profile
+    def crop(self, x):
+        x= (x * (255.0 / x.max())).astype(np.uint8)
+        return crop_and_resize_img(x, SIZE, WIDTH, HEIGHT)
+
     def predict(self):
         gc.enable()
         print("Reading input parquet files...")
@@ -54,21 +57,23 @@ class BengaliKernel():
                       self.input_path / "test_image_data_3.parquet"]
         row_id = None
         target = None
+        bs = self.cfg["params"]["test_batch_size"]
         for f in test_files:
-            img_df = pq.read_pandas(f).to_pandas()
+            img_df = pd.read_parquet(f)
+            num_rows, num_cols = img_df.shape
             imgs = []
             paths = []
-            for idx in range(len(img_df)):
-                img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
-                img = (img0 * (255.0 / img0.max())).astype(np.uint8)
-                img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
-                name = img_df.iloc[idx, 0]
-                imgs.append(img)
-                paths.append(name)
+            for idx in range(int(num_rows / bs) + 1):
+                name = img_df.iloc[idx * bs : (idx + 1) * bs, 0]
+                img0 = img_df.iloc[idx * bs : (idx + 1) * bs, 1:].values
+                img0 = np.reshape(img0, (img0.shape[0], HEIGHT, WIDTH))
+                img0 = 255 - img0.astype(np.uint8)
+                img = [self.crop(im) for im in img0]
+                imgs.extend(img)
+                paths.extend(name)
             tfms = [Normalizer(), transforms.ToTensor()]
             loader = DataLoader(SimpleDatasetNoCache(imgs, paths, transform=transforms.Compose(tfms)),
-                                batch_size=self.cfg["params"]["test_batch_size"], shuffle=False,
-                                num_workers=self.cfg["params"]["num_workers"])
+                                batch_size=bs, shuffle=False, num_workers=self.cfg["params"]["num_workers"])
             names, graph, vowel, conso = self.predict_for_ensemble(loader)
             g_ids = [f"{s}_grapheme_root" for s in names]
             v_ids = [f"{s}_vowel_diacritic" for s in names]
@@ -91,60 +96,6 @@ class BengaliKernel():
         print(submission_df.head(10))
         print("Submission length: ", len(submission_df))
         print("Done")
-
-    # ------------------------------ Prediction with cache ------------------------------
-
-    def predict_with_cache(self):
-        self.read_input_parquets()
-        self.img_paths = list(self.cache_dir.glob("*.png"))
-        tfms = [Normalizer(), transforms.ToTensor()]
-        test_dataloader = DataLoader(SimpleDataset(self.img_paths, transform=transforms.Compose(tfms)),
-                                     batch_size=self.cfg["params"]["test_batch_size"], shuffle=False,
-                                     num_workers=self.cfg["params"]["num_workers"])
-        """
-        grapheme_df, vowel_df, conso_df = self.predict_for_ensemble(test_dataloader)
-        ids = grapheme_df.index.values
-        g_ids = [f"{s}_grapheme_root" for s in ids]
-        v_ids = [f"{s}_vowel_diacritic" for s in ids]
-        c_ids = [f"{s}_consonant_diacritic" for s in ids]
-        row_id = np.stack([g_ids, v_ids, c_ids], 1)
-        row_id = row_id.flatten()
-        g = np.argmax(grapheme_df.values, axis=1)
-        v = np.argmax(vowel_df.values, axis=1)
-        c = np.argmax(conso_df.values, axis=1)
-        target = np.stack([g, v, c], 1)
-        target = target.flatten()
-        submission_df = pd.DataFrame({'row_id': row_id, 'target': target})
-        submission_df.to_csv(self.output_path / 'submission.csv', index=False)
-        print(submission_df.head(10))
-        print("Submission length: ", len(submission_df))
-        print("Done")
-        """
-
-    # --------------------------------------- Utils ---------------------------------------
-
-    def read_input_parquets(self):
-        if self.cache_dir.exists():
-            print("You've already generated cache dir at {}".format(self.cache_dir))
-            return
-        gc.enable()
-        print("Reading input parquet files...")
-        test_files = [self.input_path / "test_image_data_0.parquet",
-                      self.input_path / "test_image_data_1.parquet",
-                      self.input_path / "test_image_data_2.parquet",
-                      self.input_path / "test_image_data_3.parquet"]
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        for f in test_files:
-            img_df = pd.read_parquet(f)
-            for idx in range(len(img_df)):
-                img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
-                img = (img0 * (255.0 / img0.max())).astype(np.uint8)
-                img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
-                name = img_df.iloc[idx, 0]
-                cv2.imwrite(str(self.cache_dir / f"{name}.png"), img)
-            del img_df
-            gc.collect()
-        print("Save parquet files as png at {}".format(self.cache_dir))
 
     def predict_for_ensemble(self, test_dataloader):
         self.model.eval()
