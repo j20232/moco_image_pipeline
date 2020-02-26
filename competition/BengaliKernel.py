@@ -68,10 +68,9 @@ class BengaliKernel():
                 img0 = img_df.iloc[idx * bs : (idx + 1) * bs, 1:].values
                 img0 = np.reshape(img0, (img0.shape[0], HEIGHT, WIDTH))
                 img0 = 255 - img0.astype(np.uint8)
-                img = np.array([self.crop(im) for im in img0])
-                for b in range(min(bs, num_rows % bs)):
-                    imgs.append(img[b])
-                    paths.append(name[b])
+                img = [self.crop(im) for im in img0]
+                imgs.extend(img)
+                paths.extend(name)
             tfms = [Normalizer(), transforms.ToTensor()]
             loader = DataLoader(SimpleDatasetNoCache(imgs, paths, transform=transforms.Compose(tfms)),
                                 batch_size=bs, shuffle=False, num_workers=self.cfg["params"]["num_workers"])
