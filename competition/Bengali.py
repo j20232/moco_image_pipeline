@@ -41,7 +41,6 @@ class Normalizer():
     def __call__(self, img):
         return (img.astype(np.float32) - 0.0692) / 0.2051
 
-
 class Bengali():
 
     def __init__(self, name, index, cfg, is_train=True, is_local=False):
@@ -52,6 +51,15 @@ class Bengali():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = PretrainedCNN(in_channels=1, out_dim=GRAPH + VOWEL + CONSO,
                                    is_local=is_local, **self.cfg["model"])
+        if "loss_weights" in self.cfg["params"].keys():
+            self.gweight = self.cfg["params"]["loss_weights"]["grapheme"]
+            self.vweight = self.cfg["params"]["loss_weights"]["vowel"]
+            self.cweight = self.cfg["params"]["loss_weights"]["conso"]
+        else:
+            self.gweight = 1
+            self.vweight = 1
+            self.cweight = 1
+
         if is_train:
             self.__set_training()
 
@@ -142,7 +150,7 @@ class Bengali():
         loss_grapheme = F.cross_entropy(preds[0], labels[:, 0])
         loss_vowel = F.cross_entropy(preds[1], labels[:, 1])
         loss_consonant = F.cross_entropy(preds[2], labels[:, 2])
-        loss = loss_grapheme + loss_vowel + loss_consonant
+        loss = self.gweight * loss_grapheme + self.vweight * loss_vowel + self.cweight * loss_consonant
         log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
         log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
         log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
