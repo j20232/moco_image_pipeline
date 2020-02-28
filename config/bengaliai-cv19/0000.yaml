@@ -11,7 +11,7 @@ params:
   num_workers: 2
 model:
   model_name: "resnet18"
-  pretrained: null # e.g. 'imagenet'
+  pretrained: True
 optim:
   name: "Adam"
   params:

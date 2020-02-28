@@ -1236,6 +1236,18 @@ test = ["pathlib2"]
 
 [[package]]
 category = "main"
+description = "(Unofficial) PyTorch Image Models"
+name = "timm"
+optional = false
+python-versions = ">=3.6"
+version = "0.1.18"
+
+[package.dependencies]
+torch = ">=1.0"
+torchvision = "*"
+
+[[package]]
+category = "main"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 name = "torch"
 optional = false
@@ -1383,7 +1395,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "70032d465a610eead0aa4442ebd86442b5392e67dcc84a5685d0c0e613399780"
+content-hash = "f19f0e50fc238b4b0a97ab568e40917d653c4dc71ef3c9573b2ba5aa2b0619aa"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1407,6 +1419,7 @@ backcall = [
 ]
 bleach = [
     {file = "bleach-3.1.0-py2.py3-none-any.whl", hash = "sha256:213336e49e102af26d9cde77dd2d0397afabc5a6bf2fed985dc35b5d1e285a16"},
+    {file = "bleach-3.1.0-py3.8.egg", hash = "sha256:4ca3ec10244c9f11ec129b054912e8bc9ecefc2e0b6bf0dab273f0e72cf381e4"},
     {file = "bleach-3.1.0.tar.gz", hash = "sha256:3fdf7f77adcf649c9911387df51254b813185e32b2c6619f690b593a617e19fa"},
 ]
 certifi = [
@@ -2147,6 +2160,10 @@ terminado = [
 testpath = [
     {file = "testpath-0.4.4-py2.py3-none-any.whl", hash = "sha256:bfcf9411ef4bf3db7579063e0546938b1edda3d69f4e1fb8756991f5951f85d4"},
     {file = "testpath-0.4.4.tar.gz", hash = "sha256:60e0a3261c149755f4399a1fff7d37523179a70fdc3abdf78de9fc2604aeec7e"},
+]
+timm = [
+    {file = "timm-0.1.18-py3-none-any.whl", hash = "sha256:1b8b4d01c2038ab96351f95d4b799e9a8b7943bd24a4a55ade55c896f3ad0970"},
+    {file = "timm-0.1.18.tar.gz", hash = "sha256:535810a88277a4b65b94e3fb1442564e4a54391d124a6e1860265f20e8da3b60"},
 ]
 torch = [
     {file = "torch-1.4.0-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:271d4d1e44df6ed57c530f8849b028447c62b8a19b8e8740dd9baa56e7f682c1"},

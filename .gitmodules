@@ -1,3 +1,6 @@
 [submodule "mcp/models/local_pretrained_models"]
 	path = mcp/models/local_pretrained_models
 	url = https://github.com/Cadene/pretrained-models.pytorch.git
+[submodule "mcp/models/local_timm"]
+	path = mcp/models/local_timm
+	url = https://github.com/rwightman/pytorch-image-models.git

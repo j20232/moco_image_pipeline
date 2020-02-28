@@ -36,10 +36,12 @@ TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
                   "train_image_data_2.parquet.zip",
                   "train_image_data_3.parquet.zip"]
 
+
 # dirty
 class Normalizer():
     def __call__(self, img):
         return (img.astype(np.float32) - 0.0692) / 0.2051
+
 
 class Bengali():
 
@@ -67,9 +69,11 @@ class Bengali():
         self.model_path = MODEL_PATH / self.competition_name / self.index
         self.model_path.mkdir(parents=True, exist_ok=True)
         self.check_point_weight_path = self.model_path / f"check_point_{self.index}.pth"
+        """
         if self.check_point_weight_path.exists():
             print("Loaded check_point ({})".format(self.check_point_weight_path))
             self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
+        """
 
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
