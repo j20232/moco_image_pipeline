@@ -78,30 +78,23 @@ python setup.py test
 
 Reference: https://pytorch.org/docs/stable/torchvision/models.html
 
-- `densenet121`, `densenet161`, `densenet169`, `densenet201`
-- `mobilenet_v2`
 - `resnet18`, `resnet34`, `resnet50`, resnet101`, `resnet152`
 - `resnext50_32x4d`, `resnext101_32x4d`
+- `densenet121`, `densenet169`, `densenet201`, `densenet161` 
+- `mobilenet_v2`
 - `shufflenet_v2_x0_5`, `shufflenet_v2_x1_0`, `shufflenet_v2_x1_5`, `shufflenet_v2_x2_0`
 
 ### pretrained-models
 
 Reference: https://github.com/Cadene/pretrained-models.pytorch
 
-- `bninception`
-- `cafferexnet101`
-- `dpn68`, `dpn68b`, `dpn92`, `dpn98`, `dpn107`, `dpn131`
-- `fbresnet152`
-- `inceptionv4`
-- `inceptionresnetv2`
-- `nasnetamobile`
-- `pnasnet5large`
-- `polynet`
 - `resnext101_64x4d`
-- `senet154`
-- `se_resnet50`, `se_resnet101`, `se_resnet152`
-- `se_resnext50_32x4d`, `se_resnext101_32x4d`
+- `nasnetalarge`,
+- `nasnetamobile`
+- `dpn68`, `dpn68b`, `dpn92`, `dpn98`, `dpn131`, `dpn107`
 - `xception`
+- `senet154`, `se_resnet50`, `se_resnet101`, `se_resnet152`, `se_resnext50_32x4d`, `se_resnext101_32x4d`
+- `pnasnet5large`
 
 ### pytorch-image-models
 

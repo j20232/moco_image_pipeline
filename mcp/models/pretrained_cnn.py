@@ -18,16 +18,13 @@ def get_official_names():
 
 def get_pretrained_names():
     return [
-        "resnext101_32x4d", "resnext101_64x4d",
+        "resnext101_64x4d",
         "nasnetalarge",
         "nasnetamobile",
-        "inceptionresnetv2",
         "dpn68", "dpn68b", "dpn92", "dpn98", "dpn131", "dpn107",
-        "inception_v4",
         "xception",
         "senet154", "se_resnet50", "se_resnet101", "se_resnet152", "se_resnext50_32x4d", "se_resnext101_32x4d",
         "pnasnet5large",
-        "polynet"
     ]
 
 
