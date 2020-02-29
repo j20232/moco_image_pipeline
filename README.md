@@ -2,6 +2,8 @@
 
 ![](https://github.com/j20232/moco_image_pipeline/blob/master/assets/logo.png)
 
+![GitHub CI](https://github.com/j20232/moco_image_pipeline/workflows/GitHub%20CI/badge.svg)
+
 PyTorch-based image pipeline for kaggle competition
 
 ---
