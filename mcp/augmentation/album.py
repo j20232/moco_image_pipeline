@@ -86,6 +86,6 @@ class ShiftScaleRotate():
         self.rotate_limit = rotate_limit
 
     def __call__(self, img):
-        return apply_aug(A.ShiftScaleRotate(p=1.0, shift_limit=self.shift_limit,
+        return apply_aug(A.ShiftScaleRotate(p=self.prob, shift_limit=self.shift_limit,
                                             scale_limit=self.scale_limit,
                                             rotate_limit=self.rotate_limit), img)
