@@ -6,6 +6,11 @@ Pipeline codes for image tasks
 
 ---
 
+## Installation
+
+
+---
+
 ## 🏃‍♂️ Quick Start
 
 ### Training
@@ -100,8 +105,15 @@ Reference: https://github.com/Cadene/pretrained-models.pytorch
 
 Reference: https://github.com/rwightman/pytorch-image-models
 
-- `fbnetc_100`
-- `mnasnet_050`, `mnasnet_075`, `mnasnet_100`, `mnasnet_140`, `mnasnet_small`
+- `mnasnet_050`, `mnasnet_075`, `mnasnet_100`, `mnasnet_140`
 - `semnasnet_050`, `semnasnet_075`, `semnasnet_100`, `semnasnet_140`
+- `mnasnet_small`
+- `mobilenetv2_100`
+- `fbnetc_100`
 - `spnasnet_100`
-- `efficientnet_b0`
+- `efficientnet_b0`, `efficientnet_b1`, `efficientnet_b2`, `efficientnet_b2a`
+- `efficientnet_b3`, `efficientnet_b3a`, `efficientnet_b4`, `efficientnet_b5`
+- `efficientnet_b6`, `efficientnet_b7`, `efficientnet_b8`
+- `efficientnet_es`, `efficientnet_em`, `efficientnet_el`
+- `efficientnet_cc_b0_4e`, `efficientnet_cc_b0_8e`, `efficientnet_cc_b1_8e`
+- `mixnet_s`, `mixnet_m`, `mixnet_l`, `mixnet_xl`, `mixnet_xxl`
