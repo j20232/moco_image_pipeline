@@ -10,6 +10,7 @@ PyTorch-based image pipeline for kaggle competition
 
 ```
 git clone --recursive git@github.com:j20232/moco_image_pipeline.git
+pip install -r requirements.txt
 ```
 
 ---
@@ -77,6 +78,11 @@ mlflow server -h [ip] -p [port]
 ```
 python setup.py test
 ```
+
+## ➕ To Add Competitions
+
+1. Create the competition class file at https://github.com/j20232/moco_image_pipeline/tree/master/competition
+2. Add correspondence between the competition name and class to https://github.com/j20232/moco_image_pipeline/blob/master/competition.yaml
 
 ---
 
