@@ -19,9 +19,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install poetry
         poetry install
-    - name: Test with pytest
+    - name: pytest
       run: |
         poetry run python setup.py test
-    - name: Test with 0000
-      run: |
-        poetry run python train.py bengaliai-cv19 0000
