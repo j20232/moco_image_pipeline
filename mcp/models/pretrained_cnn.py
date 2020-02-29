@@ -1,12 +1,34 @@
 import importlib
-import torch
 from torch import nn
 import torch.nn.functional as F
-import torchvision.models as official_models
-from .local_pretrained_models import pretrainedmodels as local_pretrained_models
+from .local_cnn_finetune import cnn_finetune as local_cnn_finetune
 from .local_timm import timm as local_timm
 
-from .linear_block import LinearBlock
+
+def get_official_names():
+    return [
+        # torchvision
+        "resnet18", "resnet34", "resnet50", "resnet101", "resnet152",
+        "resnext50_32x4d", "resnext101_32x8d",
+        "densenet121", "densenet169", "densenet201", "densenet161",
+        "mobilenet_v2",
+        "shufflenet_v2_x0_5", "shufflenet_v2_x1_0",
+    ]
+
+
+def get_pretrained_names():
+    return [
+        "resnext101_32x4d", "resnext101_64x4d",
+        "nasnetalarge",
+        "nasnetamobile",
+        "inceptionresnetv2",
+        "dpn68", "dpn68b", "dpn92", "dpn98", "dpn131", "dpn107",
+        "inception_v4",
+        "xception",
+        "senet154", "se_resnet50", "se_resnet101", "se_resnet152", "se_resnext50_32x4d", "se_resnext101_32x4d",
+        "pnasnet5large",
+        "polynet"
+    ]
 
 
 class PretrainedCNN(nn.Module):
@@ -15,23 +37,10 @@ class PretrainedCNN(nn.Module):
                  use_bn=True, pretrained=True, kernel_size=3, stride=1, padding=1):
         super(PretrainedCNN, self).__init__()
         print("Architecture: ", model_name)
-        module = local_pretrained_models if is_local else importlib.import_module("pretrainedmodels")
-        if model_name in dir(official_models):
-            # official
-            self.base_model = getattr(official_models, model_name)(pretrained=pretrained and not is_local)
-            feature_layers = list(self.base_model.children())[:-1]
-            final_layer = list(self.base_model.children())[-1]
-            self.base_model = nn.Sequential(*feature_layers, nn.Linear(final_layer.in_features, out_dim))
-        elif model_name in dir(module):
-            # pretrainedmodels
-            pre = "imagenet" if not is_local and pretrained else None
-            self.base_models = module.__dict__[model_name](pretrained=pre)
-            inch = self.base_models.last_linear.in_features
-            base_model = self.base_models.features
-            lin1 = LinearBlock(inch, hdim, use_bn=use_bn, activation=activation, residual=False)
-            lin2 = LinearBlock(hdim, out_dim, use_bn=use_bn, activation=None, residual=False)
-            layers = [base_model, lin1, lin2]
-            self.base_model = nn.Sequential(*layers)
+        module = local_cnn_finetune if is_local else importlib.import_module("cnn_finetune")
+        if model_name in get_official_names() or model_name in get_pretrained_names():
+            self.base_model = module.make_model(model_name, num_classes=out_dim,
+                                                pretrained=not is_local and pretrained)
         else:
             # timm
             module = local_timm if is_local else importlib.import_module("timm")
