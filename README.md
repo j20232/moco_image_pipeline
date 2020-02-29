@@ -24,7 +24,7 @@ python train.py [competition_name] [index]
 
 |Competition|Train|Kernel|Config|
 |:-|:-|:-|:-|
-|[`bengaliai-cv19`](https://www.kaggle.com/c/bengaliai-cv19)|[Link](https://github.com/j20232/moco_image_pipeline/blob/master/competition/Bengali.py) | [Link](https://github.com/j20232/moco_image_pipeline/blob/master/competition/BengaliKernel.py) |[Link](https://github.com/j20232/moco_image_pipeline/tree/master/config/bengaliai-cv19")|
+|[`bengaliai-cv19`](https://www.kaggle.com/c/bengaliai-cv19)|[Link](https://github.com/j20232/moco_image_pipeline/blob/master/competition/Bengali.py) | [Link](https://github.com/j20232/moco_image_pipeline/blob/master/competition/BengaliKernel.py) |[Link](https://github.com/j20232/moco_image_pipeline/tree/master/config/bengaliai-cv19)|
 
 e.g.
 
