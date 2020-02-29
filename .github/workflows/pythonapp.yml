@@ -15,11 +15,13 @@ jobs:
         python-version: 3.8
     - name: Install dependencies
       run: |
+        git submodule update --init --recursive
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install poetry
+        poetry install
     - name: Test with pytest
       run: |
-        python setup.py test
+        poetry run python setup.py test
     - name: Test with 0000
       run: |
-        python train.py bengaliai-cv19 0000
+        poetry run python train.py bengaliai-cv19 0000
