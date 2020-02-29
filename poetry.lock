@@ -107,6 +107,24 @@ version = "1.3.0"
 
 [[package]]
 category = "main"
+description = "Fine-tune pretrained Convolutional Neural Networks with PyTorch"
+name = "cnn-finetune"
+optional = false
+python-versions = ">=3.5"
+version = "0.6.0"
+
+[package.dependencies]
+pretrainedmodels = ">=0.7.4"
+scipy = "*"
+torch = "*"
+torchvision = ">=0.3.0"
+tqdm = "*"
+
+[package.extras]
+tests = ["pytest", "numpy", "pytest-cov"]
+
+[[package]]
+category = "main"
 description = "Cross-platform colored terminal text."
 marker = "python_version >= \"3.3\" and sys_platform == \"win32\" or sys_platform == \"win32\""
 name = "colorama"
@@ -1395,7 +1413,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "f19f0e50fc238b4b0a97ab568e40917d653c4dc71ef3c9573b2ba5aa2b0619aa"
+content-hash = "96dd2380a611b87e59fae799294b0f25b8d425a3826a04228f48d3620fa589ed"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1437,6 +1455,9 @@ click = [
 cloudpickle = [
     {file = "cloudpickle-1.3.0-py2.py3-none-any.whl", hash = "sha256:8664761f810efc07dbb301459e413c99b68fcc6d8703912bd39d86618ac631e3"},
     {file = "cloudpickle-1.3.0.tar.gz", hash = "sha256:38af54d0e7705d87a287bdefe1df00f936aadb1f629dca383e825cca927fa753"},
+]
+cnn-finetune = [
+    {file = "cnn_finetune-0.6.0.tar.gz", hash = "sha256:557582afa0acfbdc93c4d18a34db0b34714086c1194f9731056fcb425a5937bd"},
 ]
 colorama = [
     {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
