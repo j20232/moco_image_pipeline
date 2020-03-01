@@ -1,0 +1,48 @@
+seed: 1116
+dataset:
+  train: "moco_train_20.csv"
+  valid: "moco_valid_20.csv"
+params:
+  epochs: 100
+  batch_size: 64
+  test_batch_size: 64
+  es_rounds: 10
+  verbose: 1
+  num_workers: 8
+  loss_weights:
+    grapheme: 2
+    vowel: 1
+    conso: 1
+model:
+  model_name: "se_resnext50_32x4d"
+  pretrained: True
+optim:
+  name: "Adam"
+  params:
+    - lr: 0.001
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    - T_max: 10
+transform:
+  - name: RandomBlur
+    params:
+      prob: 0.4
+  - name: RandomNoise
+    params:
+      prob: 0.4
+  - name: CoarseDropout
+    params:
+      prob: 0.4
+  - name: GridDistortion
+    params:
+      prob: 0.4
+  - name: ElasticTransform
+    params:
+      prob: 0.4
+  - name: RandomBrightnessContrast
+    params:
+      prob: 0.4
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.4
