@@ -46,3 +46,6 @@ transform:
   - name: ShiftScaleRotate
     params:
       prob: 0.4
+  - name: RandomMorphology
+    params:
+      prob: 0.4
