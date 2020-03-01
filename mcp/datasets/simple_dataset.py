@@ -21,7 +21,7 @@ class SimpleDataset(Dataset):
         if self.transform:
             x = self.transform(x)
 
-        return (x, self.labels[i]) if self.is_train else (x, str(self.paths[i]))
+        return (x, self.labels[i], str(self.paths[i])) if self.is_train else (x, str(self.paths[i]))
 
 
 class SimpleDatasetNoCache(Dataset):

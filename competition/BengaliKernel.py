@@ -44,7 +44,7 @@ class BengaliKernel():
         self.cache_dir = output_path / "cache"
 
     def crop(self, x):
-        x= (x * (255.0 / x.max())).astype(np.uint8)
+        x = (x * (255.0 / x.max())).astype(np.uint8)
         return crop_and_resize_img(x, SIZE, WIDTH, HEIGHT)
 
     def predict(self):
