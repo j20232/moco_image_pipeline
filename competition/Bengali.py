@@ -30,6 +30,7 @@ ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
 MODEL_PATH = ROOT_PATH / "models"
 INPUT_PATH = ROOT_PATH / "input"
+OOF_PATH = ROOT_PATH / "logs" / "oof"
 TRAIN_DIR = INPUT_PATH / "train_images"
 TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
                   "train_image_data_1.parquet.zip",
@@ -69,12 +70,9 @@ class Bengali():
         self.model_path = MODEL_PATH / self.competition_name / self.index
         self.model_path.mkdir(parents=True, exist_ok=True)
         self.check_point_weight_path = self.model_path / f"check_point_{self.index}.pth"
-        """
         if self.check_point_weight_path.exists():
             print("Loaded check_point ({})".format(self.check_point_weight_path))
             self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
-        """
-
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
         self.scheduler = getattr(lr_scheduler, self.cfg["scheduler"]["name"])(
@@ -126,7 +124,7 @@ class Bengali():
     def __train_one_epoch(self, log):
         self.scheduler.step()
         self.model.train()
-        for inputs, labels in tqdm(self.train_loader):
+        for inputs, labels, _ in tqdm(self.train_loader):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             self.optimizer.zero_grad()
             preds = self.model(inputs)
@@ -141,7 +139,7 @@ class Bengali():
     def __valid_one_epoch(self, log):
         self.model.eval()
         with torch.no_grad():
-            for inputs, labels in tqdm(self.valid_loader):
+            for inputs, labels, _ in tqdm(self.valid_loader):
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 preds = self.model(inputs)
                 if isinstance(preds, tuple) is False:
@@ -197,7 +195,49 @@ class Bengali():
         self.writer.log_cfg(self.cfg)
         print("Initialized the setting of training!")
 
+    def __calculate_oof(self):
+        self.model.eval()
+        names = []
+        graph = None
+        vowel = None
+        conso = None
+        graph_label = None
+        vowel_label = None
+        conso_label = None
+        with torch.no_grad():
+            for inputs, labels, paths in tqdm(self.valid_loader):
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                preds = self.model(inputs)
+                if isinstance(preds, tuple) is False:
+                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+                    labels = torch.split(labels, [1, 1, 1], dim=1)
+                names.extend([n.split("/")[-1].split(".")[0] for n in list(paths)])
+                prob_graph = F.softmax(preds[0], dim=1).cpu().detach().numpy()
+                prob_vowel = F.softmax(preds[1], dim=1).cpu().detach().numpy()
+                prob_conso = F.softmax(preds[2], dim=1).cpu().detach().numpy()
+                graph = prob_graph if graph is None else np.append(graph, prob_graph, axis=0)
+                vowel = prob_vowel if vowel is None else np.append(vowel, prob_vowel, axis=0)
+                conso = prob_conso if conso is None else np.append(conso, prob_conso, axis=0)
+                graph_label = labels[0] if graph_label is None else np.append(labels[0], graph_label)
+                vowel_label = labels[1] if vowel_label is None else np.append(labels[1], vowel_label)
+                conso_label = labels[2] if conso_label is None else np.append(labels[2], conso_label)
+        graph_df = pd.DataFrame({"image_id": names, "label": graph_label})
+        graph_df = pd.concat([graph_df, pd.DataFrame(graph)], axis=1)
+        vowel_df = pd.DataFrame({"image_id": names, "label": vowel_label})
+        vowel_df = pd.concat([vowel_df, pd.DataFrame(vowel)], axis=1)
+        conso_df = pd.DataFrame({"image_id": names, "label": conso_label})
+        conso_df = pd.concat([conso_df, pd.DataFrame(conso)], axis=1)
+        oof_dir = OOF_PATH / self.competition_name / self.index
+        oof_dir.mkdir(parents=True, exist_ok=True)
+        graph_df.to_csv(oof_dir / "oof_grapheme.csv", index=False)
+        vowel_df.to_csv(oof_dir / "oof_vowel.csv", index=False)
+        conso_df.to_csv(oof_dir / "oof_consonant.csv", index=False)
+        self.writer.log_artifact(str(oof_dir / "oof_grapheme.csv"))
+        self.writer.log_artifact(str(oof_dir / "oof_vowel.csv"))
+        self.writer.log_artifact(str(oof_dir / "oof_consonant.csv"))
+
     def __close_fitting(self):
+        self.__calculate_oof()
         weight_path = str(self.model_path / f"{self.index}.pth")
         torch.save(self.best_model_weight, weight_path)
         self.__write_training_log(self.best_results, "CV")
