@@ -1,6 +1,6 @@
 [submodule "mcp/models/local_timm"]
 	path = mcp/models/local_timm
 	url = https://github.com/rwightman/pytorch-image-models.git
-[submodule "mcp/models/local_cnn_finetune"]
+[submodule "cnn_fin"]
 	path = mcp/models/local_cnn_finetune
 	url = https://github.com/j20232/pytorch-cnn-finetune.git
