@@ -45,14 +45,14 @@ class Normalizer():
 
 class Bengali():
 
-    def __init__(self, name, index, cfg, is_train=True, is_local=False):
+    def __init__(self, name, index, cfg, is_train=True):
         super(Bengali, self).__init__()
         self.competition_name = name
         self.index = index
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = PretrainedCNN(in_channels=1, out_dim=GRAPH + VOWEL + CONSO,
-                                   is_local=is_local, **self.cfg["model"])
+                                   **self.cfg["model"])
         if "loss_weights" in self.cfg["params"].keys():
             self.gweight = self.cfg["params"]["loss_weights"]["grapheme"]
             self.vweight = self.cfg["params"]["loss_weights"]["vowel"]

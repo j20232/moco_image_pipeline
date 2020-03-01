@@ -1,8 +1,14 @@
-import importlib
 from torch import nn
 import torch.nn.functional as F
-from .local_cnn_finetune import cnn_finetune as local_cnn_finetune
-from .local_timm import timm as local_timm
+import os
+import sys
+
+DIR_NAME = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(DIR_NAME + "/local_cnn_finetune/"))
+sys.path.append(os.path.join(DIR_NAME + "/local_timm/"))
+
+import cnn_finetune
+import timm
 
 
 def get_official_names():
@@ -48,20 +54,18 @@ def get_timm_names():
 
 
 class PretrainedCNN(nn.Module):
-    def __init__(self, model_name='se_resnext101_32x4d', is_local=False,
+    def __init__(self, model_name,
                  in_channels=3, out_dim=10, hdim=512, activation=F.leaky_relu,
-                 use_bn=True, pretrained=True, kernel_size=3, stride=1, padding=1):
+                 use_bn=True, pretrained=False, kernel_size=3, stride=1, padding=1):
         super(PretrainedCNN, self).__init__()
         print("Architecture: ", model_name)
-        module = local_cnn_finetune if is_local else importlib.import_module("cnn_finetune")
+        is_remote = os.getcwd() != "/kaggle/working"
         if model_name in get_official_names() or model_name in get_pretrained_names():
-            self.base_model = module.make_model(model_name, num_classes=out_dim,
-                                                pretrained=not is_local and pretrained)
+            self.base_model = cnn_finetune.make_model(model_name, num_classes=out_dim,
+                                                      pretrained=is_remote and pretrained)
         elif model_name in get_timm_names():
-            # timm
-            module = local_timm if is_local else importlib.import_module("timm")
-            self.base_model = module.create_model(model_name, num_classes=out_dim,
-                                                  pretrained=not is_local and pretrained)
+            self.base_model = timm.create_model(model_name, num_classes=out_dim,
+                                                pretrained=is_remote and pretrained)
         else:
             print("Not supported architecture")
             assert False
