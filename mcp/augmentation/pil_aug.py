@@ -14,7 +14,7 @@ class CenterOrRandomCrop():
     def __call__(self, img):
         src = img
         if type(img) is np.ndarray:
-            if img.dtype == "float64":
+            if img.dtype == "float32" or img.dtype == "float64":
                 src = (img * 255).astype(np.uint8)
             src = Image.fromarray(src)
 
@@ -24,6 +24,6 @@ class CenterOrRandomCrop():
             out = self.random_crop(src)
 
         out = np.asarray(out)
-        if type(img) is np.ndarray and img.dtype == "float64":
-            out = (out / 255).astype(np.float64)
+        if type(img) is np.ndarray and (img.dtype == "float32" or img.dtype == "float64"):
+            out = (out / 255).astype(np.float32)
         return out

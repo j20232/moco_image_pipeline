@@ -15,15 +15,13 @@ class AugmentationTest(unittest.TestCase):
         for method_name in maug.pil_modules:
             module = getattr(maug, method_name)(size=size, prob=1.0)
 
-            # np.float64
+            # np.float32
             out = module(float_img)
             self.assertTrue(out.shape[0] == size[0] and out.shape[1] == size[1],
-                            "np.float64: illegal size")
-            self.assertTrue(out.max() <= 1.0, "np.float64: max value <= 1.0")
-            self.assertTrue(out.min() >= 0.0, "np.float64: min value >= 0.0")
-
-            # np.uint8
-            out = module(uint_img)
+                            "np.float32: illegal size")
+            self.assertTrue(out.max() <= 1.0, "np.float32: max value <= 1.0")
+            self.assertTrue(out.min() >= 0.0, "np.float32: min value >= 0.0")
+# np.uint8 out = module(uint_img)
             self.assertTrue(out.shape[0] == size[0] and out.shape[1] == size[1],
                             "np.uint8: illegal size")
             self.assertTrue(out.max() <= 255, "np.uint8: max value <= 255")
@@ -38,13 +36,16 @@ class AugmentationTest(unittest.TestCase):
 
     def test_augmentation(self):
         for method_name in maug.modules:
-            img = np.random.rand(255, 255, 3)
+            print("testing", method_name)
+            # float32 prob=0.0
+            img = np.random.rand(255, 255, 3).astype(np.float32)
             module0 = getattr(maug, method_name)(prob=0.0)
             out = module0(img)
             self.assertTrue(img.shape == out.shape, "Prob=0.0: inconsistent shape")
             self.assertTrue(out.max() <= 1.0, "Prob=0.0: max value <= 1.0")
             self.assertTrue(out.min() >= 0.0, "Prob=0.0: min value >= 0.0")
 
+            # float32 prob=1.0
             module1 = getattr(maug, method_name)(prob=1.0)
             out = module1(img)
             self.assertTrue(img.shape == out.shape, "Prob=1.0: inconsistent shape")
