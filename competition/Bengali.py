@@ -227,14 +227,25 @@ class Bengali():
         vowel_df = pd.concat([vowel_df, pd.DataFrame(vowel)], axis=1)
         conso_df = pd.DataFrame({"image_id": names, "label": conso_label})
         conso_df = pd.concat([conso_df, pd.DataFrame(conso)], axis=1)
+
         oof_dir = OOF_PATH / self.competition_name / self.index
         oof_dir.mkdir(parents=True, exist_ok=True)
-        graph_df.to_csv(oof_dir / "oof_grapheme.csv", index=False)
-        vowel_df.to_csv(oof_dir / "oof_vowel.csv", index=False)
-        conso_df.to_csv(oof_dir / "oof_consonant.csv", index=False)
-        self.writer.log_artifact(str(oof_dir / "oof_grapheme.csv"))
-        self.writer.log_artifact(str(oof_dir / "oof_vowel.csv"))
-        self.writer.log_artifact(str(oof_dir / "oof_consonant.csv"))
+        grapheme_path = oof_dir / "oof_grapheme.csv"
+        vowel_path = oof_dir / "oof_vowel.csv"
+        conso_path = oof_dir / "oof_consonant.csv"
+        graph_df.to_csv(grapheme_path, index=False)
+        vowel_df.to_csv(vowel_path, index=False)
+        conso_df.to_csv(conso_path, index=False)
+        zipfile_name = str(OOF_PATH / self.competition_name / "{}.zip".format(self.index))
+        with zipfile.ZipFile(zipfile_name, "w") as z:
+            z.write(str(grapheme_path), arcname="oof_grapheme.csv")
+            z.write(str(vowel_path), arcname="oof_vowel.csv")
+            z.write(str(conso_path), arcname="oof_consonant.csv")
+        self.writer.log_artifact(zipfile_name)
+        os.remove(str(grapheme_path))
+        os.remove(str(vowel_path))
+        os.remove(str(conso_path))
+        os.rmdir(str(oof_dir))
 
     def __close_fitting(self):
         self.__calculate_oof()
