@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+# ndarray: H x W x C
+
 
 def get_random_kernel(min_ker, max_ker):
     structure = np.random.choice([cv2.MORPH_RECT, cv2.MORPH_ELLIPSE, cv2.MORPH_CROSS])

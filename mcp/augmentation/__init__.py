@@ -1,9 +1,17 @@
-from .basic import CenterOrRandomCrop, GaussianNoise
+from .basic import GaussianNoise
 from .album import RandomBlur, RandomNoise, CoarseDropout, GridDistortion, ElasticTransform, RandomBrightnessContrast, ShiftScaleRotate
 from .opencv import RandomMorphology
+from .pil_aug import CenterOrRandomCrop
 
+# PIL
+pil_modules = [
+    "CenterOrRandomCrop"
+]
+
+
+# np.ndarray
 modules = [
-    "CenterOrRandomCrop", "GaussianNoise",
+    "GaussianNoise",
     "RandomBlur", "RandomNoise", "CoarseDropout", "GridDistortion",
     "ElasticTransform", "RandomBrightnessContrast", "ShiftScaleRotate",
     "RandomMorphology"
