@@ -1,6 +1,8 @@
 import numpy as np
 import albumentations as A
 
+# ndarray: H x W x C
+
 
 def apply_aug(aug, image):
     return aug(image=image)["image"]
