@@ -4,7 +4,7 @@ import numpy as np
 
 
 class GaussianNoise():
-    def __init__(self, prob, sigma=5):
+    def __init__(self, prob, sigma=0.2):
         self.prob = np.clip(prob, 0.0, 1.0)
         self.sigma = sigma
 
