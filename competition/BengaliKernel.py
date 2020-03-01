@@ -35,8 +35,7 @@ class BengaliKernel():
     def __init__(self, competition, cfg, input_path, model_weight_path, output_path):
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = PretrainedCNN(in_channels=1, out_dim=GRAPH + VOWEL + CONSO,
-                                   is_local=True, **self.cfg["model"])
+        self.model = PretrainedCNN(in_channels=1, out_dim=GRAPH + VOWEL + CONSO, **self.cfg["model"])
         self.model.load_state_dict(torch.load(str(model_weight_path), map_location=self.device))
         self.model = self.model.to(self.device)
         print("Loaded pretrained model: {}".format(model_weight_path))
