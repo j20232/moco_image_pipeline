@@ -9,6 +9,9 @@ params:
   es_rounds: 10
   verbose: 1
   num_workers: 4
+others:
+  name: null # "mixup" or "cutmix" or null
+  alpha: 0.2
 model:
   model_name: "se_resnext50_32x4d"
   pretrained: True
