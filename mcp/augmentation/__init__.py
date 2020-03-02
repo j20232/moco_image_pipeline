@@ -2,6 +2,7 @@ from .basic import GaussianNoise
 from .album import RandomBlur, RandomNoise, CoarseDropout, GridDistortion, ElasticTransform, RandomBrightnessContrast, ShiftScaleRotate, RandomAugMix
 from .opencv import RandomMorphology
 from .pil_aug import CenterOrRandomCrop
+from .mixup import Mixup
 
 # PIL
 pil_modules = [

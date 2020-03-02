@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import cv2
 import torch
+import torch.nn as nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.nn import functional as F
@@ -43,6 +44,48 @@ class Normalizer():
     def __call__(self, img):
         return (img.astype(np.float32) - 0.0692) / 0.2051
 
+# --------------------------- CutMix --------------------------------
+
+def rand_bbox(size, lam):
+    W = size[2]
+    H = size[3]
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = np.int(W * cut_rat)
+    cut_h = np.int(H * cut_rat)
+
+    # uniform
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    bby1 = np.clip(cy - cut_h // 2, 0, H)
+    bbx2 = np.clip(cx + cut_w // 2, 0, W)
+    bby2 = np.clip(cy + cut_h // 2, 0, H)
+
+    return bbx1, bby1, bbx2, bby2
+
+def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True):
+    # cutmix if is_cutmix else mixup
+    indices = torch.randperm(data.size(0))
+    shuffled_data = data[indices]
+    shuffled_targets0 = targets[:, 0][indices]
+    shuffled_targets1 = targets[:, 1][indices]
+    shuffled_targets2 = targets[:, 2][indices]
+
+    lam = np.random.beta(alpha, alpha)
+    if is_cutmix:
+        bbx1, bby1, bbx2, bby2 = rand_bbox(data.size(), lam)
+        data[:, :, bbx1:bbx2, bby1:bby2] = data[indices, :, bbx1:bbx2, bby1:bby2]
+        lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (data.size()[-1] * data.size()[-2]))
+    else:
+        data = data * lam + shuffled_data * (1 - lam)
+
+    out = [targets[:, 0], shuffled_targets0,
+           targets[:, 1], shuffled_targets1,
+           targets[:, 2], shuffled_targets2]
+    return data, out, lam
+
+# --------------------------- Trainer --------------------------------
 
 class Bengali():
 
@@ -101,7 +144,7 @@ class Bengali():
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train,
                           num_workers=self.cfg["params"]["num_workers"])
-
+    
     def fit(self):
         self.__initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
@@ -109,7 +152,10 @@ class Bengali():
                          "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
                          "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
             valid_log = copy.deepcopy(train_log)
-            results_train = self.__train_one_epoch(train_log)
+            if self.cfg["others"]["name"] is not None:
+                results_train = self.__train_one_epoch_others(train_log)
+            else:
+                results_train = self.__train_one_epoch(train_log)
             results_valid = self.__valid_one_epoch(valid_log)
             show_logs(self.cfg, ep, results_train, results_valid)
             self.__write_training_log(results_train, "Train", ep)
@@ -131,6 +177,24 @@ class Bengali():
             if isinstance(preds, tuple) is False:
                 preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
             loss, log = self.__calc_loss(preds, labels, log, len(self.train_loader))
+            loss.backward()
+            self.optimizer.step()
+        log["acc"] = (log["acc_grapheme"] * 2 + log["acc_vowel"] + log["acc_consonant"]) / 4
+        return log
+
+    def __train_one_epoch_others(self, log):
+        self.scheduler.step()
+        self.model.train()
+        for inputs, labels, _ in tqdm(self.train_loader):
+            inputs, labels = inputs.to(self.device), labels.to(self.device)
+            inputs, labels, lam = bengali_cutmix_or_mixup(inputs, labels,
+                                                     alpha=self.cfg["others"]["alpha"],
+                                                     is_cutmix=self.cfg["others"]["name"]=="cutmix")
+            self.optimizer.zero_grad()
+            preds = self.model(inputs)
+            if isinstance(preds, tuple) is False:
+                preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+            loss, log = self.__calc_loss_mix(preds, labels, lam, log, len(self.train_loader))
             loss.backward()
             self.optimizer.step()
         log["acc"] = (log["acc_grapheme"] * 2 + log["acc_vowel"] + log["acc_consonant"]) / 4
@@ -161,6 +225,26 @@ class Bengali():
         acc_grapheme = accuracy(preds[0], labels[:, 0])
         acc_vowel = accuracy(preds[1], labels[:, 1])
         acc_consonant = accuracy(preds[2], labels[:, 2])
+        log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
+        log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
+        log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
+        return loss, log
+
+    def __calc_loss_mix(self, preds, labels, lam, log=None, loader_length=1):
+        crit = nn.CrossEntropyLoss(reduction='mean')
+        loss_grapheme = lam * crit(preds[0], labels[0]) + (1 - lam) * crit(preds[0], labels[1])
+        loss_vowel = lam * crit(preds[1], labels[2]) + (1 - lam) * crit(preds[1], labels[3])
+        loss_consonant = lam * crit(preds[2], labels[4]) + (1 - lam) * crit(preds[2], labels[5])
+        loss = self.gweight * loss_grapheme + self.vweight * loss_vowel + self.cweight * loss_consonant
+        log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
+        log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
+        log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
+        log["loss"] += (loss / loader_length).cpu().detach().numpy()
+
+        acc_grapheme = lam * accuracy(preds[0], labels[0]) + (1 - lam) * accuracy(preds[0], labels[1])
+        acc_vowel = lam * accuracy(preds[1], labels[2]) + (1 - lam) * accuracy(preds[1], labels[3])
+        acc_consonant = lam * accuracy(preds[2], labels[4]) + (1 - lam) * accuracy(preds[2], labels[5])
+
         log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
         log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
@@ -218,9 +302,12 @@ class Bengali():
                 graph = prob_graph if graph is None else np.append(graph, prob_graph, axis=0)
                 vowel = prob_vowel if vowel is None else np.append(vowel, prob_vowel, axis=0)
                 conso = prob_conso if conso is None else np.append(conso, prob_conso, axis=0)
-                graph_label = labels[0] if graph_label is None else np.append(labels[0], graph_label)
-                vowel_label = labels[1] if vowel_label is None else np.append(labels[1], vowel_label)
-                conso_label = labels[2] if conso_label is None else np.append(labels[2], conso_label)
+                g = labels[0].cpu().detach().numpy()
+                v = labels[1].cpu().detach().numpy()
+                c = labels[2].cpu().detach().numpy()
+                graph_label = g if graph_label is None else np.append(g, graph_label)
+                vowel_label = v if vowel_label is None else np.append(v, vowel_label)
+                conso_label = c if conso_label is None else np.append(c, conso_label)
         graph_df = pd.DataFrame({"image_id": names, "label": graph_label})
         graph_df = pd.concat([graph_df, pd.DataFrame(graph)], axis=1)
         vowel_df = pd.DataFrame({"image_id": names, "label": vowel_label})
