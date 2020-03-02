@@ -3,10 +3,10 @@ dataset:
   train: "moco_train_20.csv"
   valid: "moco_valid_20.csv"
 params:
-  epochs: 100
+  epochs: 15
   batch_size: 64
   test_batch_size: 64
-  es_rounds: 10
+  es_rounds: 4
   verbose: 1
   num_workers: 8
   loss_weights:
