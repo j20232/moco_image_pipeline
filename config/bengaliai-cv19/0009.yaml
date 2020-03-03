@@ -1,18 +1,14 @@
 seed: 1116
 dataset:
-  train: "d_30_moco_train_10.csv"
-  valid: "d_30_moco_valid_10.csv"
+  train: "moco_debug_train.csv"
+  valid: "moco_debug_valid.csv"
 params:
   epochs: 15
   batch_size: 64
   test_batch_size: 64
-  es_rounds: 4
+  es_rounds: 5
   verbose: 1
   num_workers: 8
-  loss_weights:
-    grapheme: 1
-    vowel: 1
-    conso: 1
 others:
   name: null # "mixup" or "cutmix" or null
   alpha: 0.2
@@ -29,5 +25,38 @@ scheduler:
     - T_max: 10
 transform:
   - name: RandomBlur
+    params:
+      prob: 0.2
+  - name: GaussNoise
+    params:
+      prob: 0.2
+  - name: MultiplicativeNoise
+    params:
+      prob: 0.2
+  - name: GridDistortion
+    params:
+      prob: 0.2
+  - name: ElasticTransform
+    params:
+      prob: 0.2
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.2
+  - name: HueSaturationValue
+    params:
+      prob: 0.2
+  - name: RandomBrightnessContrast
+    params:
+      prob: 0.2
+  - name: RandomCLAHE
+    params:
+      prob: 0.2
+  - name: CoarseDropout
+    params:
+      prob: 0.2
+  - name: RandomAugMix
+    params:
+      prob: 0.2
+  - name: RandomMorphology
     params:
       prob: 0.2

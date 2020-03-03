@@ -95,7 +95,7 @@ class Bengali():
         self.index = index
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = PretrainedCNN(in_channels=1, out_dim=GRAPH + VOWEL + CONSO,
+        self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
                                    **self.cfg["model"])
         if "loss_weights" in self.cfg["params"].keys():
             self.gweight = self.cfg["params"]["loss_weights"]["grapheme"]
