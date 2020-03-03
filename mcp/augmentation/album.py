@@ -9,60 +9,59 @@ def apply_aug(aug, image):
     return aug(image=image)["image"]
 
 
+# ----------------------------------- Blur -------------------------------------------
 class RandomBlur():
-    def __init__(self, prob, median_blur_limit=5):
+    def __init__(self, prob, blur_limit=9):
         self.prob = np.clip(prob, 0.0, 1.0)
-        self.median_blur_limit = median_blur_limit
+        self.blur_limit = blur_limit
 
     def __call__(self, img):
         if np.random.uniform() < self.prob:
             r = np.random.uniform()
-            if r < 0.25:
-                img = apply_aug(A.Blur(p=1.0), img)
-            elif r < 0.5:
-                img = apply_aug(A.MedianBlur(blur_limit=self.median_blur_limit, p=1.0), img)
-            elif r < 0.75:
-                img = apply_aug(A.GaussianBlur(p=1.0), img)
+            if r < 0.4:
+                img = apply_aug(A.Blur(blur_limit=self.blur_limit, always_apply=True), img)
+            elif r < 0.6:
+                img = apply_aug(A.GaussianBlur(blur_limit=self.blur_limit, always_apply=True), img)
             else:
-                img = apply_aug(A.MotionBlur(p=1.0), img)
+                img = apply_aug(A.MotionBlur(blur_limit=self.blur_limit, always_apply=True), img)
         return img
 
 
-class RandomNoise():
-    def __init__(self, prob, var_limit=5.):
+# ----------------------------------- Noise -------------------------------------------
+
+class GaussNoise():
+    def __init__(self, prob, var_limit=(0.0, 0.07)):
         self.prob = np.clip(prob, 0.0, 1.0)
         self.var_limit = var_limit
 
     def __call__(self, img):
-        if np.random.uniform() < self.prob:
-            img = apply_aug(A.GaussNoise(var_limit=self.var_limit / 255., p=1.0), img)
-        else:
-            img = apply_aug(A.MultiplicativeNoise(p=1.0), img)
-        return img
+        return apply_aug(A.GaussNoise(var_limit=self.var_limit, p=self.prob), img)
 
-
-class CoarseDropout():
-    def __init__(self, prob, max_holes=8, max_height=8, max_width=8):
+class MultiplicativeNoise():
+    def __init__(self, prob, var_limit=(0.6, 1.1)):
         self.prob = np.clip(prob, 0.0, 1.0)
-        self.max_holes = max_holes
-        self.max_height = max_height
-        self.max_width = max_width
+        self.var_limit = var_limit
 
     def __call__(self, img):
-        return apply_aug(A.CoarseDropout(p=self.prob, max_holes=self.max_holes,
-                                         max_height=self.max_height, max_width=self.max_width), img)
+        return apply_aug(A.MultiplicativeNoise(multiplier=self.var_limit, p=self.prob), img)
 
+
+# ---------------------------------- Distortion ---------------------------------------
 
 class GridDistortion():
-    def __init__(self, prob):
+    def __init__(self, prob, num_steps=10, distort_limit=0.7):
         self.prob = np.clip(prob, 0.0, 1.0)
+        self.num_steps = num_steps
+        self.distort_limit = distort_limit
+
 
     def __call__(self, img):
-        return apply_aug(A.GridDistortion(p=self.prob), img)
+        return apply_aug(A.GridDistortion(p=self.prob, num_steps=self.num_steps,
+                                          distort_limit=self.distort_limit), img)
 
 
 class ElasticTransform():
-    def __init__(self, prob, sigma=50, alpha=1, alpha_affine=1.0):
+    def __init__(self, prob, sigma=40, alpha=1, alpha_affine=15):
         self.prob = np.clip(prob, 0.0, 1.0)
         self.sigma = sigma
         self.alpha = alpha
@@ -72,17 +71,8 @@ class ElasticTransform():
         return apply_aug(A.ElasticTransform(p=self.prob, sigma=self.sigma,
                                             alpha=self.alpha, alpha_affine=self.alpha_affine), img)
 
-
-class RandomBrightnessContrast():
-    def __init__(self, prob):
-        self.prob = np.clip(prob, 0.0, 1.0)
-
-    def __call__(self, img):
-        return apply_aug(A.IAAPiecewiseAffine(p=self.prob), img)
-
-
 class ShiftScaleRotate():
-    def __init__(self, prob, shift_limit=0.0625, scale_limit=0.1, rotate_limit=30):
+    def __init__(self, prob, shift_limit=0.0625, scale_limit=0.2, rotate_limit=20):
         self.prob = prob
         self.shift_limit = shift_limit
         self.scale_limit = scale_limit
@@ -92,6 +82,68 @@ class ShiftScaleRotate():
         return apply_aug(A.ShiftScaleRotate(p=self.prob, shift_limit=self.shift_limit,
                                             scale_limit=self.scale_limit,
                                             rotate_limit=self.rotate_limit), img)
+
+# ----------------------------------- Histogram ----------------------------------------
+
+class HueSaturationValue():
+    def __init__(self, prob, hue_shift_limit=20, sat_shift_limit=40, val_shift_limit=100):
+        self.prob = np.clip(prob, 0.0, 1.0)
+        self.hue_shift_limit = hue_shift_limit
+        self.sat_shift_limit = sat_shift_limit
+        self.val_shift_limit = val_shift_limit
+
+    def __call__(self, img):
+        out = img if img.dtype == "uint8" else (img * 255).astype(np.uint8)
+
+        out = apply_aug(A.HueSaturationValue(p=self.prob, hue_shift_limit=self.hue_shift_limit,
+                                             sat_shift_limit=self.sat_shift_limit,
+                                             val_shift_limit=self.val_shift_limit), out)
+        return out if img.dtype == "uint8" else (out / 255).astype(np.float64)
+
+class RandomBrightnessContrast():
+    def __init__(self, prob, brightness_limit=2.0, contrast_limit=0.6):
+        self.prob = np.clip(prob, 0.0, 1.0)
+        self.brightness_limit = brightness_limit
+        self.contrast_limit = contrast_limit
+
+    def __call__(self, img):
+        return apply_aug(A.RandomBrightnessContrast(p=self.prob,
+                                                    brightness_limit=self.brightness_limit,
+                                                    contrast_limit=self.contrast_limit,
+                                                    brightness_by_max=False,
+                                                    ), img)
+
+
+class RandomCLAHE():
+    def __init__(self, prob, clip_limit=40.0, tile_grid_size=(16, 16)):
+        self.prob = np.clip(prob, 0.0, 1.0)
+        self.clip_limit= clip_limit
+        self.tile_grid_size = tile_grid_size
+
+
+    def __call__(self, img):
+        out = img if img.dtype == "uint8" else (img * 255).astype(np.uint8)
+        out = apply_aug(A.CLAHE(p=self.prob, clip_limit=self.clip_limit,
+                                tile_grid_size=self.tile_grid_size), out)
+        return out if img.dtype == "uint8" else (out / 255).astype(np.float64)
+
+
+
+
+# ------------------------------------- Removal ------------------------------------------
+
+class CoarseDropout():
+    def __init__(self, prob, max_holes=10, max_height=12, max_width=12):
+        self.prob = np.clip(prob, 0.0, 1.0)
+        self.max_holes = max_holes
+        self.max_height = max_height
+        self.max_width = max_width
+
+    def __call__(self, img):
+        return apply_aug(A.CoarseDropout(p=self.prob, max_holes=self.max_holes,
+                                         max_height=self.max_height, max_width=self.max_width,
+                                         fill_value=np.median(img)), img)
+
 
 # ------------------------------------------- Augmix -------------------------------------------
 # Reference: https://www.kaggle.com/haqishen/augmix-based-on-albumentations
@@ -266,7 +318,7 @@ def augment_and_mix(image, severity=3, width=3, depth=-1, alpha=1.):
 
 class RandomAugMix():
 
-    def __init__(self, prob=0.4, severity=3, width=3, depth=-1, alpha=1.):
+    def __init__(self, prob=0.1, severity=2, width=3, depth=2, alpha=1.):
         self.prob = prob
         self.severity = severity
         self.width = width

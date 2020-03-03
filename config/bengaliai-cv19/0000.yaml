@@ -27,10 +27,10 @@ transform:
   - name: RandomBlur
     params:
       prob: 0.2
-  - name: RandomNoise
+  - name: GaussNoise
     params:
       prob: 0.2
-  - name: CoarseDropout
+  - name: MultiplicativeNoise
     params:
       prob: 0.2
   - name: GridDistortion
@@ -39,10 +39,22 @@ transform:
   - name: ElasticTransform
     params:
       prob: 0.2
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.2
+  - name: HueSaturationValue
+    params:
+      prob: 0.2
   - name: RandomBrightnessContrast
     params:
       prob: 0.2
-  - name: ShiftScaleRotate
+  - name: RandomCLAHE
+    params:
+      prob: 0.2
+  - name: CoarseDropout
+    params:
+      prob: 0.2
+  - name: RandomAugMix
     params:
       prob: 0.2
   - name: RandomMorphology

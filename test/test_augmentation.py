@@ -37,17 +37,18 @@ class AugmentationTest(unittest.TestCase):
     def test_augmentation(self):
         for method_name in maug.modules:
             print("testing", method_name)
-            # float32 prob=0.0
-            img = np.random.rand(255, 255, 3).astype(np.float32)
+            # float64 prob=0.0
+            img = np.random.rand(255, 255, 3).astype(np.float64)
             module0 = getattr(maug, method_name)(prob=0.0)
             out = module0(img)
             self.assertTrue(img.shape == out.shape, "Prob=0.0: inconsistent shape")
             self.assertTrue(out.max() <= 1.0, "Prob=0.0: max value <= 1.0")
             self.assertTrue(out.min() >= 0.0, "Prob=0.0: min value >= 0.0")
 
-            # float32 prob=1.0
+            # float64 prob=1.0
             module1 = getattr(maug, method_name)(prob=1.0)
             out = module1(img)
             self.assertTrue(img.shape == out.shape, "Prob=1.0: inconsistent shape")
             self.assertTrue(out.max() <= 1.0, "Prob=1.0: max value <= 1.0")
             self.assertTrue(out.min() >= 0.0, "Prob=1.0: min value >= 0.0")
+

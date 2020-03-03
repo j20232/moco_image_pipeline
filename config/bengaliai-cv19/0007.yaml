@@ -31,7 +31,7 @@ transform:
   - name: RandomBlur
     params:
       prob: 0.2
-  - name: RandomNoise
+  - name: GaussNoise
     params:
       prob: 0.2
   - name: CoarseDropout
