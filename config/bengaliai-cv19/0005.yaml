@@ -16,6 +16,7 @@ params:
 others:
   name: null # "mixup" or "cutmix" or null
   alpha: 0.2
+  use_grapheme: False
 model:
   model_name: "mobilenet_v2"
   pretrained: True

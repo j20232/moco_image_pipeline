@@ -16,6 +16,7 @@ params:
 others:
   name: mixup # "mixup" or "cutmix" or null
   alpha: 0.2
+  use_grapheme: False
 model:
   model_name: "se_resnext50_32x4d"
   pretrained: True
