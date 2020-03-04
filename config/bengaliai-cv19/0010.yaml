@@ -4,8 +4,8 @@ dataset:
   valid: "moco_valid_10.csv"
 params:
   epochs: 25
-  batch_size: 64
-  test_batch_size: 64
+  batch_size: 128
+  test_batch_size: 128
   es_rounds: 5
   verbose: 1
   num_workers: 8
