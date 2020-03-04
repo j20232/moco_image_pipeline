@@ -27,6 +27,7 @@ from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 GRAPH = 168
 VOWEL = 11
 CONSO = 7
+ALL = 1295
 ROOT_PATH = Path(".").resolve()
 CONFIG_PATH = ROOT_PATH / "config"
 MODEL_PATH = ROOT_PATH / "models"
@@ -46,6 +47,7 @@ class Normalizer():
 
 # --------------------------- CutMix --------------------------------
 
+
 def rand_bbox(size, lam):
     W = size[2]
     H = size[3]
@@ -64,7 +66,8 @@ def rand_bbox(size, lam):
 
     return bbx1, bby1, bbx2, bby2
 
-def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True):
+
+def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True, use_all=False):
     # cutmix if is_cutmix else mixup
     indices = torch.randperm(data.size(0))
     shuffled_data = data[indices]
@@ -83,9 +86,14 @@ def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True):
     out = [targets[:, 0], shuffled_targets0,
            targets[:, 1], shuffled_targets1,
            targets[:, 2], shuffled_targets2]
+    if use_all:
+        shuffled_targets3 = targets[:, 3][indices]
+        out.append(targets[:, 3])
+        out.append(shuffled_targets3)
     return data, out, lam
 
 # --------------------------- Trainer --------------------------------
+
 
 class Bengali():
 
@@ -95,8 +103,13 @@ class Bengali():
         self.index = index
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
-                                   **self.cfg["model"])
+        self.use_grapheme = self.cfg["others"]["use_grapheme"]
+        if self.use_grapheme:
+            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO + ALL,
+                                       **self.cfg["model"])
+        else:
+            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
+                                       **self.cfg["model"])
         if "loss_weights" in self.cfg["params"].keys():
             self.gweight = self.cfg["params"]["loss_weights"]["grapheme"]
             self.vweight = self.cfg["params"]["loss_weights"]["vowel"]
@@ -133,7 +146,10 @@ class Bengali():
         # Train if is_train else Valid
         train_img_path = INPUT_PATH / self.competition_name / "train_images"
         paths = [Path(train_img_path / f"{x}.png") for x in df["image_id"].values]
-        labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
+        if self.use_grapheme:
+            labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic", "unique_label"]].values
+        else:
+            labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic"]].values
         tfms = []
         for tfm_dict in self.cfg["transform"]:
             name, params = tfm_dict["name"], tfm_dict["params"]
@@ -144,13 +160,13 @@ class Bengali():
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train,
                           num_workers=self.cfg["params"]["num_workers"])
-    
+
     def fit(self):
         self.__initialize_fitting()
         for ep in tqdm(range(self.cfg["params"]["epochs"])):
             train_log = {"loss": 0,
-                         "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0,
-                         "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0}
+                         "loss_grapheme": 0, "loss_vowel": 0, "loss_consonant": 0, "loss_all": 0,
+                         "acc_grapheme": 0, "acc_vowel": 0, "acc_consonant": 0, "acc_all": 0}
             valid_log = copy.deepcopy(train_log)
             if self.cfg["others"]["name"] is not None:
                 results_train = self.__train_one_epoch_others(train_log)
@@ -175,7 +191,10 @@ class Bengali():
             self.optimizer.zero_grad()
             preds = self.model(inputs)
             if isinstance(preds, tuple) is False:
-                preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+                if self.use_grapheme:
+                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO, ALL], dim=1)
+                else:
+                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
             loss, log = self.__calc_loss(preds, labels, log, len(self.train_loader))
             loss.backward()
             self.optimizer.step()
@@ -188,12 +207,16 @@ class Bengali():
         for inputs, labels, _ in tqdm(self.train_loader):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             inputs, labels, lam = bengali_cutmix_or_mixup(inputs, labels,
-                                                     alpha=self.cfg["others"]["alpha"],
-                                                     is_cutmix=self.cfg["others"]["name"]=="cutmix")
+                                                          alpha=self.cfg["others"]["alpha"],
+                                                          is_cutmix=self.cfg["others"]["name"] == "cutmix",
+                                                          use_all=self.use_grapheme)
             self.optimizer.zero_grad()
             preds = self.model(inputs)
             if isinstance(preds, tuple) is False:
-                preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+                if self.use_grapheme:
+                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO, ALL], dim=1)
+                else:
+                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
             loss, log = self.__calc_loss_mix(preds, labels, lam, log, len(self.train_loader))
             loss.backward()
             self.optimizer.step()
@@ -207,7 +230,10 @@ class Bengali():
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 preds = self.model(inputs)
                 if isinstance(preds, tuple) is False:
-                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+                    if self.use_grapheme:
+                        preds = torch.split(preds, [GRAPH, VOWEL, CONSO, ALL], dim=1)
+                    else:
+                        preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
                 loss, log = self.__calc_loss(preds, labels, log, len(self.valid_loader))
         log["acc"] = (log["acc_grapheme"] * 2 + log["acc_vowel"] + log["acc_consonant"]) / 4
         return log
@@ -220,7 +246,6 @@ class Bengali():
         log["loss_grapheme"] += (loss_grapheme / loader_length).cpu().detach().numpy()
         log["loss_vowel"] += (loss_vowel / loader_length).cpu().detach().numpy()
         log["loss_consonant"] += (loss_consonant / loader_length).cpu().detach().numpy()
-        log["loss"] += (loss / loader_length).cpu().detach().numpy()
 
         acc_grapheme = accuracy(preds[0], labels[:, 0])
         acc_vowel = accuracy(preds[1], labels[:, 1])
@@ -228,6 +253,15 @@ class Bengali():
         log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
         log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
+
+        if self.use_grapheme:
+            loss_all = F.cross_entropy(preds[3], labels[:, 3])
+            log["loss_all"] += (loss_all / loader_length).cpu().detach().numpy()
+            acc_all = accuracy(preds[3], labels[:, 3])
+            log["acc_all"] += (acc_all / loader_length).cpu().detach().numpy()
+            loss += loss_all
+
+        log["loss"] += (loss / loader_length).cpu().detach().numpy()
         return loss, log
 
     def __calc_loss_mix(self, preds, labels, lam, log=None, loader_length=1):
@@ -248,6 +282,11 @@ class Bengali():
         log["acc_grapheme"] += (acc_grapheme / loader_length).cpu().detach().numpy()
         log["acc_vowel"] += (acc_vowel / loader_length).cpu().detach().numpy()
         log["acc_consonant"] += (acc_consonant / loader_length).cpu().detach().numpy()
+        if self.use_grapheme:
+            loss_all = lam * crit(preds[3], labels[6]) + (1 - lam) * crit(preds[3], labels[7])
+            log["loss_all"] += (loss_all / loader_length).cpu().detach().numpy()
+            acc_all = lam * accuracy(preds[3], labels[6]) + (1 - lam) * accuracy(preds[3], labels[7])
+            log["acc_all"] += (acc_all / loader_length).cpu().detach().numpy()
         return loss, log
 
     def __check_early_stopping(self, results_valid):
@@ -261,6 +300,10 @@ class Bengali():
             self.best_results["acc_vowel"] = results_valid["acc_vowel"]
             self.best_results["acc_consonant"] = results_valid["acc_consonant"]
             self.best_results["acc"] = results_valid["acc"]
+
+            if self.use_grapheme:
+                self.best_results["loss_all"] = results_valid["loss_all"]
+                self.best_results["acc_all"] = results_valid["acc_all"]
 
             self.best_model_weight = copy.deepcopy(self.model.state_dict())
             torch.save(self.best_model_weight, str(self.check_point_weight_path))
@@ -288,13 +331,21 @@ class Bengali():
         graph_label = None
         vowel_label = None
         conso_label = None
+        if self.use_grapheme:
+            uniq = None
+            uniq_label = None
+
         with torch.no_grad():
             for inputs, labels, paths in tqdm(self.valid_loader):
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 preds = self.model(inputs)
                 if isinstance(preds, tuple) is False:
-                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
-                    labels = torch.split(labels, [1, 1, 1], dim=1)
+                    if self.use_grapheme:
+                        preds = torch.split(preds, [GRAPH, VOWEL, CONSO, ALL], dim=1)
+                        labels = torch.split(labels, [1, 1, 1, 1], dim=1)
+                    else:
+                        preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+                        labels = torch.split(labels, [1, 1, 1], dim=1)
                 names.extend([n.split("/")[-1].split(".")[0] for n in list(paths)])
                 prob_graph = F.softmax(preds[0], dim=1).cpu().detach().numpy()
                 prob_vowel = F.softmax(preds[1], dim=1).cpu().detach().numpy()
@@ -308,6 +359,11 @@ class Bengali():
                 graph_label = g if graph_label is None else np.append(g, graph_label)
                 vowel_label = v if vowel_label is None else np.append(v, vowel_label)
                 conso_label = c if conso_label is None else np.append(c, conso_label)
+                if self.use_grapheme:
+                    prob_uniq = F.softmax(preds[3], dim=1).cpu().detach().numpy()
+                    uniq = prob_uniq if uniq is None else np.append(uniq, prob_uniq, axis=0)
+                    c = labels[3].cpu().detach().numpy()
+                    uniq_label = c if uniq_label is None else np.append(c, uniq_label)
         graph_df = pd.DataFrame({"image_id": names, "label": graph_label})
         graph_df = pd.concat([graph_df, pd.DataFrame(graph)], axis=1)
         vowel_df = pd.DataFrame({"image_id": names, "label": vowel_label})
@@ -324,10 +380,20 @@ class Bengali():
         vowel_df.to_csv(vowel_path, index=False)
         conso_df.to_csv(conso_path, index=False)
         zipfile_name = str(OOF_PATH / self.competition_name / "{}.zip".format(self.index))
+
+        if self.use_grapheme:
+            uniq_df = pd.DataFrame({"image_id": names, "label": uniq_label})
+            uniq_df = pd.concat([graph_df, pd.DataFrame(uniq)], axis=1)
+            label_path = oof_dir / "oof_label.csv"
+            uniq_df.to_csv(label_path, index=False)
+
         with zipfile.ZipFile(zipfile_name, "w") as z:
             z.write(str(grapheme_path), arcname="oof_grapheme.csv")
             z.write(str(vowel_path), arcname="oof_vowel.csv")
             z.write(str(conso_path), arcname="oof_consonant.csv")
+            if self.use_grapheme:
+                z.write(str(conso_path), arcname="oof_label.csv")
+                os.remove(str(label_path))
         self.writer.log_artifact(zipfile_name)
         os.remove(str(grapheme_path))
         os.remove(str(vowel_path))
@@ -352,6 +418,9 @@ class Bengali():
         self.writer.log_metric(f"acc_vowel_{postfix}", results["acc_vowel"], ep)
         self.writer.log_metric(f"loss_consonant_{postfix}", results["loss_consonant"], ep)
         self.writer.log_metric(f"acc_consonant_{postfix}", results["acc_consonant"], ep)
+        if self.use_grapheme:
+            self.writer.log_metric(f"loss_all_{postfix}", results["loss_all"], ep)
+            self.writer.log_metric(f"acc_all_{postfix}", results["acc_all"], ep)
 
 
 def convert_parquet2png():

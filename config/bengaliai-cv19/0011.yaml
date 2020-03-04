@@ -1,22 +1,18 @@
 seed: 1116
 dataset:
-  train: "moco_train_20.csv"
-  valid: "moco_valid_20.csv"
+  train: "moco_train_10.csv"
+  valid: "moco_valid_10.csv"
 params:
   epochs: 15
   batch_size: 64
   test_batch_size: 64
-  es_rounds: 4
+  es_rounds: 5
   verbose: 1
   num_workers: 8
-  loss_weights:
-    grapheme: 2
-    vowel: 1
-    conso: 1
 others:
   name: null # "mixup" or "cutmix" or null
   alpha: 0.2
-  use_grapheme: False
+  use_grapheme: True
 model:
   model_name: "se_resnext50_32x4d"
   pretrained: True
@@ -35,7 +31,7 @@ transform:
   - name: GaussNoise
     params:
       prob: 0.2
-  - name: CoarseDropout
+  - name: MultiplicativeNoise
     params:
       prob: 0.2
   - name: GridDistortion
@@ -44,15 +40,24 @@ transform:
   - name: ElasticTransform
     params:
       prob: 0.2
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.2
+  - name: HueSaturationValue
+    params:
+      prob: 0.2
   - name: RandomBrightnessContrast
     params:
       prob: 0.2
-  - name: ShiftScaleRotate
+  - name: RandomCLAHE
+    params:
+      prob: 0.2
+  - name: CoarseDropout
+    params:
+      prob: 0.2
+  - name: RandomAugMix
     params:
       prob: 0.2
   - name: RandomMorphology
     params:
       prob: 0.2
-  - name: RandomAugMix
-    params:
-      prob: 0.5
