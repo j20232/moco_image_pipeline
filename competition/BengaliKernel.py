@@ -18,6 +18,7 @@ from mcp.utils.convert import crop_and_resize_img
 GRAPH = 168
 VOWEL = 11
 CONSO = 7
+ALL = 1295
 SIZE = 128
 WIDTH = 236
 HEIGHT = 137
@@ -34,7 +35,14 @@ class BengaliKernel():
     def __init__(self, competition, cfg, input_path, model_weight_path, output_path):
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO, **self.cfg["model"])
+        self.use_grapheme = self.cfg["others"]["use_grapheme"]
+        if self.use_grapheme:
+            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO + ALL,
+                                       **self.cfg["model"])
+        else:
+            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
+                                       **self.cfg["model"])
+
         self.model.load_state_dict(torch.load(str(model_weight_path), map_location=self.device))
         self.model = self.model.to(self.device)
         print("Loaded pretrained model: {}".format(model_weight_path))
@@ -44,7 +52,9 @@ class BengaliKernel():
 
     def crop(self, x):
         x = (x * (255.0 / x.max())).astype(np.uint8)
-        return crop_and_resize_img(x, SIZE, WIDTH, HEIGHT)
+        x = crop_and_resize_img(x, SIZE, WIDTH, HEIGHT)
+        x = cv2.cvtColor(x, cv2.COLOR_GRAY2BGR)
+        return x
 
     def predict(self):
         gc.enable()
@@ -67,7 +77,6 @@ class BengaliKernel():
                 img0 = np.reshape(img0, (img0.shape[0], HEIGHT, WIDTH))
                 img0 = 255 - img0.astype(np.uint8)
                 img = [self.crop(im) for im in img0]
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
                 imgs.extend(img)
                 paths.extend(name)
             tfms = [Normalizer(), transforms.ToTensor()]
@@ -107,7 +116,10 @@ class BengaliKernel():
                 imgs = imgs.to(self.device)
                 preds = self.model(imgs)
                 if isinstance(preds, tuple) is False:
-                    preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
+                    if self.use_grapheme:
+                        preds = torch.split(preds, [GRAPH, VOWEL, CONSO, ALL], dim=1)
+                    else:
+                        preds = torch.split(preds, [GRAPH, VOWEL, CONSO], dim=1)
                 names.extend([n.split("/")[-1].split(".")[0] for n in list(paths)])
                 prob_graph = F.softmax(preds[0], dim=1).cpu().detach().numpy()
                 prob_vowel = F.softmax(preds[1], dim=1).cpu().detach().numpy()
