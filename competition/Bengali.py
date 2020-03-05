@@ -20,7 +20,7 @@ sys.path.append(os.path.join(".."))
 import mcp.augmentation as aug
 from mcp.datasets import SimpleDataset
 from mcp.functions.metrics import accuracy
-from mcp.models import PretrainedCNN
+from mcp.models import PretrainedCNN, FreezedSEResNeXt
 from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 
 
@@ -104,12 +104,17 @@ class Bengali():
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.use_grapheme = self.cfg["others"]["use_grapheme"]
+        model_name = self.cfg["model"]["model_name"]
+        out_dim = GRAPH + VOWEL + CONSO
         if self.use_grapheme:
-            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO + ALL,
-                                       **self.cfg["model"])
+            out_dim += ALL
+        if model_name == "freeze":
+            self.model = FreezedSEResNeXt(in_channels=3, out_dim=out_dim,
+                                          **self.cfg["model"])
         else:
-            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
+            self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
                                        **self.cfg["model"])
+
         if "loss_weights" in self.cfg["params"].keys():
             self.gweight = self.cfg["params"]["loss_weights"]["grapheme"]
             self.vweight = self.cfg["params"]["loss_weights"]["vowel"]
@@ -125,10 +130,10 @@ class Bengali():
     def __set_training(self):
         self.model_path = MODEL_PATH / self.competition_name / self.index
         self.model_path.mkdir(parents=True, exist_ok=True)
-        self.check_point_weight_path = self.model_path / f"check_point_{self.index}.pth"
-        if self.check_point_weight_path.exists():
-            print("Loaded check_point ({})".format(self.check_point_weight_path))
-            self.model.load_state_dict(torch.load(str(self.check_point_weight_path)))
+        self.check_point_best_weight_path = self.model_path / "check_point_best.pth"
+        if self.check_point_best_weight_path.exists():
+            print("Loaded the best check point")
+            self.model.load_state_dict(torch.load(str(self.check_point_best_weight_path)))
         self.optimizer = getattr(optim, self.cfg["optim"]["name"])(
             self.model.parameters(), **self.cfg["optim"]["params"][0])
         self.scheduler = getattr(lr_scheduler, self.cfg["scheduler"]["name"])(
@@ -179,6 +184,9 @@ class Bengali():
             if self.__check_early_stopping(results_valid):
                 print("Early stopping at round {}".format(ep))
                 break
+            ep_model_weight = copy.deepcopy(self.model.state_dict())
+            torch.save(ep_model_weight, str(self.model_path / f"check_point_{ep}.pth"))
+
             self.model.load_state_dict(self.best_model_weight)
         self.__close_fitting()
         return self.best_results
@@ -306,7 +314,7 @@ class Bengali():
                 self.best_results["acc_all"] = results_valid["acc_all"]
 
             self.best_model_weight = copy.deepcopy(self.model.state_dict())
-            torch.save(self.best_model_weight, str(self.check_point_weight_path))
+            torch.save(self.best_model_weight, str(self.check_point_best_weight_path))
             self.early_stopping_count = 0
         else:
             self.early_stopping_count += 1
