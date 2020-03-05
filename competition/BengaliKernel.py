@@ -4,7 +4,6 @@ import sys
 import gc
 import numpy as np
 import pandas as pd
-import pyarrow.parquet as pq
 import cv2
 import torch
 import torch.nn.functional as F
@@ -68,6 +67,7 @@ class BengaliKernel():
                 img0 = np.reshape(img0, (img0.shape[0], HEIGHT, WIDTH))
                 img0 = 255 - img0.astype(np.uint8)
                 img = [self.crop(im) for im in img0]
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
                 imgs.extend(img)
                 paths.extend(name)
             tfms = [Normalizer(), transforms.ToTensor()]
