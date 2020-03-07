@@ -97,7 +97,7 @@ def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True, use_all=Fa
 
 class Bengali():
 
-    def __init__(self, name, index, cfg, is_train=True):
+    def __init__(self, name, index, cfg):
         super(Bengali, self).__init__()
         self.competition_name = name
         self.index = index
@@ -125,9 +125,7 @@ class Bengali():
             self.gweight = 1
             self.vweight = 1
             self.cweight = 1
-
-        if is_train:
-            self.__set_training()
+        self.__set_training()
 
     def __set_training(self):
         self.model_path = MODEL_PATH / self.competition_name / self.index

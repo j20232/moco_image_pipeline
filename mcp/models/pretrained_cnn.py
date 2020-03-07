@@ -3,7 +3,6 @@ import torch.nn.functional as F
 
 import os
 import sys
-from block import DropBlock2D
 
 DIR_NAME = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(DIR_NAME + "/local_cnn_finetune/"))

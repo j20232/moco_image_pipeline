@@ -20,7 +20,7 @@ pil_modules = [
 modules = [
     "RandomBlur",
     "GaussNoise", "MultiplicativeNoise",
-    "GridDistortion", "ElasticTransform","ShiftScaleRotate",
+    "GridDistortion", "ElasticTransform", "ShiftScaleRotate",
     "HueSaturationValue", "RandomBrightnessContrast", "RandomCLAHE",
     "CoarseDropout",
     "RandomAugMix",

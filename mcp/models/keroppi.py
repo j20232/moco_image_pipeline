@@ -59,7 +59,7 @@ class KeroSEResNeXt(nn.Module):
 
 class RGB(nn.Module):
     def __init__(self):
-        self(RGB, self).__init__()
+        super(RGB, self).__init__()
         self.register_buffer("mean", torch.zeros(1, 3, 1, 1))
         self.register_buffer("std", torch.zeros(1, 3, 1, 1))
         self.mean.data = torch.FloatTensor(IMAGE_RGB_MEAN).view(self.mean.shape)
