@@ -20,7 +20,7 @@ sys.path.append(os.path.join(".."))
 import mcp.augmentation as aug
 from mcp.datasets import SimpleDataset
 from mcp.functions.metrics import accuracy
-from mcp.models import PretrainedCNN, FreezedSEResNeXt
+from mcp.models import PretrainedCNN, FreezedSEResNeXt, KeroSEResNeXt
 from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 
 
@@ -111,6 +111,8 @@ class Bengali():
         if model_name == "freeze":
             self.model = FreezedSEResNeXt(in_channels=3, out_dim=out_dim,
                                           **self.cfg["model"])
+        elif model_name == "kero_seresnext":
+            self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
         else:
             self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
                                        **self.cfg["model"])

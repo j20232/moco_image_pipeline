@@ -25,7 +25,7 @@ def residual_add(lhs, rhs):
 class LinearBlock(nn.Module):
 
     def __init__(self, in_features, out_features, bias=True,
-                 use_bn=True, activation=F.relu, dropout_ratio=-1, residual=False,):
+                 use_bn=True, activation=F.relu, dropout_ratio=-1, residual=False):
         super(LinearBlock, self).__init__()
         self.linear = nn.Linear(in_features, out_features, bias=bias)
         self.bn = nn.BatchNorm1d(out_features) if use_bn else (lambda x : x)

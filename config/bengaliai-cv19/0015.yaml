@@ -14,7 +14,7 @@ others:
   alpha: 0.2
   use_grapheme: True
 model:
-  model_name: "resnet18"
+  model_name: "kero_seresnext"
   pretrained: True
 optim:
   name: "Adam"

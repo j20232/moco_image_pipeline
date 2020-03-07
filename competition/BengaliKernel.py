@@ -12,7 +12,7 @@ from torchvision import transforms
 
 sys.path.append(os.path.join(".."))
 from mcp.datasets import SimpleDataset, SimpleDatasetNoCache
-from mcp.models import PretrainedCNN
+from mcp.models import PretrainedCNN, KeroSEResNeXt
 from mcp.utils.convert import crop_and_resize_img
 
 GRAPH = 168
@@ -36,11 +36,16 @@ class BengaliKernel():
         self.cfg = cfg
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.use_grapheme = self.cfg["others"]["use_grapheme"]
+        model_name = self.cfg["model"]["model_name"]
+        out_dim = GRAPH + VOWEL + CONSO
         if self.use_grapheme:
-            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO + ALL,
-                                       **self.cfg["model"])
+            out_dim += ALL
+
+        if model_name == "kero_seresnext":
+            self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
+
         else:
-            self.model = PretrainedCNN(in_channels=3, out_dim=GRAPH + VOWEL + CONSO,
+            self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
                                        **self.cfg["model"])
 
         self.model.load_state_dict(torch.load(str(model_weight_path), map_location=self.device))

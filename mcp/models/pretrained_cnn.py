@@ -1,7 +1,9 @@
 from torch import nn
 import torch.nn.functional as F
+
 import os
 import sys
+from block import DropBlock2D
 
 DIR_NAME = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(DIR_NAME + "/local_cnn_finetune/"))
@@ -69,6 +71,7 @@ class PretrainedCNN(nn.Module):
         else:
             print("Not supported architecture")
             assert False
+
         self.conv0 = nn.Conv2d(in_channels, 3,
                                kernel_size=kernel_size, stride=stride, padding=padding,
                                bias=True)
