@@ -1,0 +1,81 @@
+seed: 1116
+dataset:
+  train: "moco_train_10.csv"
+  valid: "moco_valid_10.csv"
+params:
+  epochs: 200
+  batch_size: 128
+  test_batch_size: 128
+  es_rounds: 10
+  verbose: 1
+  num_workers: 8
+others:
+  name: null # "mixup" or "cutmix" or null
+  alpha: 0.2
+  use_grapheme: True
+model:
+  model_name: "kero_seresnext"
+  pretrained: True
+optim:
+  name: "Adam"
+  params:
+    - lr: 0.001
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    - T_max: 10
+transform:
+  - name: RandomBlur
+    params:
+      prob: 0.2
+  - name: GaussNoise
+    params:
+      prob: 0.2
+  - name: MultiplicativeNoise
+    params:
+      prob: 0.2
+  - name: GridDistortion
+    params:
+      prob: 0.2
+  - name: ElasticTransform
+    params:
+      prob: 0.2
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.2
+  - name: CoarseDropout
+    params:
+      prob: 0.2
+  - name: RandomAugMix
+    params:
+      prob: 0.2
+  - name: RandomMorphology
+    params:
+      prob: 0.2
+  - name: RandomProjective
+    params:
+      prob: 0.2
+  - name: RandomPerspective
+    params:
+      prob: 0.2
+  - name: RandomShearX
+    params:
+      prob: 0.2
+  - name: RandomShearY
+    params:
+      prob: 0.2
+  - name: RandomStretchX
+    params:
+      prob: 0.2
+  - name: RandomStretchY
+    params:
+      prob: 0.2
+  - name: RandomBlockFade
+    params:
+      prob: 0.2
+  - name: RandomSpinkle
+    params:
+      prob: 0.2
+  - name: RandomLine
+    params:
+      prob: 0.3
