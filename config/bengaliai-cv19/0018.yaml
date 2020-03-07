@@ -6,7 +6,7 @@ params:
   epochs: 200
   batch_size: 128
   test_batch_size: 128
-  es_rounds: 10
+  es_rounds: 20
   verbose: 1
   num_workers: 8
 others:
@@ -19,11 +19,13 @@ model:
 optim:
   name: "Adam"
   params:
-    - lr: 0.001
+    - lr: 0.01
 scheduler:
-  name: "CosineAnnealingLR"
+  name: "ReduceLROnPlateau"
   params:
-    - T_max: 10
+    - mode: "min"
+      factor: 0.1
+      patience: 5
 transform:
   - name: RandomBlur
     params:
