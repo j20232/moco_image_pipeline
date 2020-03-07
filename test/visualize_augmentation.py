@@ -35,7 +35,7 @@ if __name__ == "__main__":
     img_nums = 100
     rows = 10
     TEST_PATH = Path(".").resolve() / "assets" / "test_images"
-    img = cv2.imread(str(TEST_PATH / "3.png"))
+    img = cv2.imread(str(TEST_PATH / "4.png"))
     img = cv2.resize(img, (128, 128))
     img = (img / 255).astype(np.float64)
     # augmentation
