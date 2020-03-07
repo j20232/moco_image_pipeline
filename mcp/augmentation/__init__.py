@@ -10,6 +10,9 @@ from .opencv import RandomMorphology
 from .pil_aug import CenterOrRandomCrop
 from .mixup import Mixup
 
+from .kero_aug import RandomProjective, RandomPerspective, RandomRotate
+from .kero_aug import RandomScale, RandomShearX, RandomShearY, RandomStretchX, RandomStretchY
+
 # PIL
 pil_modules = [
     "CenterOrRandomCrop"
@@ -24,5 +27,7 @@ modules = [
     "HueSaturationValue", "RandomBrightnessContrast", "RandomCLAHE",
     "CoarseDropout",
     "RandomAugMix",
-    "RandomMorphology"
+    "RandomMorphology",
+    "RandomProjective", "RandomPerspective", "RandomRotate",
+    "RandomScale", "RandomShearX", "RandomShearY", "RandomStretchX", "RandomStretchY"
 ]
