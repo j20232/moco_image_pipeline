@@ -10,7 +10,8 @@ import sys
 sys.path.append(os.path.join("."))
 import mcp.augmentation as maug
 
-def show_imgs(img_list, title_list=None, 
+
+def show_imgs(img_list, title_list=None,
               rows=1, cmap="viridis", size=(16, 8), show_axis=False):
     if title_list is not None:
         assert len(img_list) == len(title_list)
@@ -29,19 +30,21 @@ def show_imgs(img_list, title_list=None,
             plt.axis("off")
     plt.show()
 
+
 if __name__ == "__main__":
+    img_nums = 100
+    rows = 10
     TEST_PATH = Path(".").resolve() / "assets" / "test_images"
-    img = cv2.imread(str(TEST_PATH / "4.png"))
+    img = cv2.imread(str(TEST_PATH / "3.png"))
     img = cv2.resize(img, (128, 128))
     img = (img / 255).astype(np.float64)
     # augmentation
     imgs = []
-    for _ in range(50):
+    for _ in range(img_nums):
         out = img
         for method_name in maug.modules:
             module = getattr(maug, method_name)(prob=0.2)
             out = module(out)
         tmp = cv2.cvtColor((out * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY)
         imgs.append(tmp)
-    show_imgs(imgs, rows=5)
-
+    show_imgs(imgs, rows=rows, size=(24, 10))
