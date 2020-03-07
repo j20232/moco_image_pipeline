@@ -26,7 +26,7 @@ def onehot(indexes, N=None, ignore_index=None):
 
 def mixup(x, y, num_classes, gamma=0.2, smooth_eps=0.1):
     if gamma == 0 and smooth_eps == 0:
-        return x, y;
+        return x, y
     m = Beta(torch.tensor([gamma]), torch.tensor([gamma]))
     lambdas = m.sample([x.size(0), 1, 1]).to(x)
     my = onehot(y, num_classes).to(x)

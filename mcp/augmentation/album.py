@@ -37,6 +37,7 @@ class GaussNoise():
     def __call__(self, img):
         return apply_aug(A.GaussNoise(var_limit=self.var_limit, p=self.prob), img)
 
+
 class MultiplicativeNoise():
     def __init__(self, prob, var_limit=(0.6, 1.1)):
         self.prob = np.clip(prob, 0.0, 1.0)
@@ -54,7 +55,6 @@ class GridDistortion():
         self.num_steps = num_steps
         self.distort_limit = distort_limit
 
-
     def __call__(self, img):
         return apply_aug(A.GridDistortion(p=self.prob, num_steps=self.num_steps,
                                           distort_limit=self.distort_limit), img)
@@ -71,6 +71,7 @@ class ElasticTransform():
         return apply_aug(A.ElasticTransform(p=self.prob, sigma=self.sigma,
                                             alpha=self.alpha, alpha_affine=self.alpha_affine), img)
 
+
 class ShiftScaleRotate():
     def __init__(self, prob, shift_limit=0.0625, scale_limit=0.2, rotate_limit=20):
         self.prob = prob
@@ -84,6 +85,7 @@ class ShiftScaleRotate():
                                             rotate_limit=self.rotate_limit), img)
 
 # ----------------------------------- Histogram ----------------------------------------
+
 
 class HueSaturationValue():
     def __init__(self, prob, hue_shift_limit=20, sat_shift_limit=40, val_shift_limit=100):
@@ -99,6 +101,7 @@ class HueSaturationValue():
                                              sat_shift_limit=self.sat_shift_limit,
                                              val_shift_limit=self.val_shift_limit), out)
         return out if img.dtype == "uint8" else (out / 255).astype(np.float64)
+
 
 class RandomBrightnessContrast():
     def __init__(self, prob, brightness_limit=2.0, contrast_limit=0.6):
@@ -117,17 +120,14 @@ class RandomBrightnessContrast():
 class RandomCLAHE():
     def __init__(self, prob, clip_limit=40.0, tile_grid_size=(16, 16)):
         self.prob = np.clip(prob, 0.0, 1.0)
-        self.clip_limit= clip_limit
+        self.clip_limit = clip_limit
         self.tile_grid_size = tile_grid_size
-
 
     def __call__(self, img):
         out = img if img.dtype == "uint8" else (img * 255).astype(np.uint8)
         out = apply_aug(A.CLAHE(p=self.prob, clip_limit=self.clip_limit,
                                 tile_grid_size=self.tile_grid_size), out)
         return out if img.dtype == "uint8" else (out / 255).astype(np.float64)
-
-
 
 
 # ------------------------------------- Removal ------------------------------------------
@@ -290,11 +290,6 @@ def augment_and_mix(image, severity=3, width=3, depth=-1, alpha=1.):
     augmentations = [
         autocontrast, equalize, posterize, rotate, solarize, shear_x, shear_y,
         translate_x, translate_y
-    ]
-
-    augmentations_all = [
-        autocontrast, equalize, posterize, rotate, solarize, shear_x, shear_y,
-        translate_x, translate_y, color, contrast, brightness, sharpness
     ]
 
     ws = np.float32(np.random.dirichlet([alpha] * width))

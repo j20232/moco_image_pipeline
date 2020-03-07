@@ -1,5 +1,6 @@
 from torch import nn
 import torch.nn.functional as F
+
 import os
 import sys
 
@@ -69,6 +70,7 @@ class PretrainedCNN(nn.Module):
         else:
             print("Not supported architecture")
             assert False
+
         self.conv0 = nn.Conv2d(in_channels, 3,
                                kernel_size=kernel_size, stride=stride, padding=padding,
                                bias=True)

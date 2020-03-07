@@ -20,7 +20,7 @@ sys.path.append(os.path.join(".."))
 import mcp.augmentation as aug
 from mcp.datasets import SimpleDataset
 from mcp.functions.metrics import accuracy
-from mcp.models import PretrainedCNN, FreezedSEResNeXt
+from mcp.models import PretrainedCNN, FreezedSEResNeXt, KeroSEResNeXt
 from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 
 
@@ -97,7 +97,7 @@ def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True, use_all=Fa
 
 class Bengali():
 
-    def __init__(self, name, index, cfg, is_train=True):
+    def __init__(self, name, index, cfg):
         super(Bengali, self).__init__()
         self.competition_name = name
         self.index = index
@@ -111,6 +111,8 @@ class Bengali():
         if model_name == "freeze":
             self.model = FreezedSEResNeXt(in_channels=3, out_dim=out_dim,
                                           **self.cfg["model"])
+        elif model_name == "kero_seresnext":
+            self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
         else:
             self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
                                        **self.cfg["model"])
@@ -123,9 +125,7 @@ class Bengali():
             self.gweight = 1
             self.vweight = 1
             self.cweight = 1
-
-        if is_train:
-            self.__set_training()
+        self.__set_training()
 
     def __set_training(self):
         self.model_path = MODEL_PATH / self.competition_name / self.index
