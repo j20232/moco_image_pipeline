@@ -186,13 +186,15 @@ class Bengali():
                 break
             ep_model_weight = copy.deepcopy(self.model.state_dict())
             torch.save(ep_model_weight, str(self.model_path / f"check_point_{ep}.pth"))
-
+            if type(self.scheduler) == torch.optim.lr_scheduler.ReduceLROnPlateau:
+                self.scheduler.step(results_valid["loss"])
+            else:
+                self.scheduler.step()
             self.model.load_state_dict(self.best_model_weight)
         self.__close_fitting()
         return self.best_results
 
     def __train_one_epoch(self, log):
-        self.scheduler.step()
         self.model.train()
         for inputs, labels, _ in tqdm(self.train_loader):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
@@ -210,7 +212,6 @@ class Bengali():
         return log
 
     def __train_one_epoch_others(self, log):
-        self.scheduler.step()
         self.model.train()
         for inputs, labels, _ in tqdm(self.train_loader):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
