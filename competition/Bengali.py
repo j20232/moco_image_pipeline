@@ -148,7 +148,11 @@ class Bengali():
 
     def __get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
-        train_img_path = INPUT_PATH / self.competition_name / "train_images"
+        if "dataset" in self.cfg["others"].keys():
+            train_img_path = INPUT_PATH / self.competition_name / self.cfg["others"]["dataset"]
+        else:
+            train_img_path = INPUT_PATH / self.competition_name / "train_images"
+        print("is_train: {}, dataset:{} ".format(is_train, train_img_path))
         paths = [Path(train_img_path / f"{x}.png") for x in df["image_id"].values]
         if self.use_grapheme:
             labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic", "unique_label"]].values
