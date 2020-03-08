@@ -33,7 +33,6 @@ CONFIG_PATH = ROOT_PATH / "config"
 MODEL_PATH = ROOT_PATH / "models"
 INPUT_PATH = ROOT_PATH / "input"
 OOF_PATH = ROOT_PATH / "logs" / "oof"
-TRAIN_DIR = INPUT_PATH / "train_images"
 TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
                   "train_image_data_1.parquet.zip",
                   "train_image_data_2.parquet.zip",
@@ -149,7 +148,11 @@ class Bengali():
 
     def __get_train_dataloader(self, df, is_train):
         # Train if is_train else Valid
-        train_img_path = INPUT_PATH / self.competition_name / "train_images"
+        if "dataset" in self.cfg["others"].keys():
+            train_img_path = INPUT_PATH / self.competition_name / self.cfg["others"]["dataset"]
+        else:
+            train_img_path = INPUT_PATH / self.competition_name / "train_images"
+        print("is_train: {}, dataset:{} ".format(is_train, train_img_path))
         paths = [Path(train_img_path / f"{x}.png") for x in df["image_id"].values]
         if self.use_grapheme:
             labels = df[["grapheme_root", "vowel_diacritic", "consonant_diacritic", "unique_label"]].values
@@ -432,25 +435,35 @@ class Bengali():
             self.writer.log_metric(f"acc_all_{postfix}", results["acc_all"], ep)
 
 
-def convert_parquet2png():
-    SIZE = 128
+def convert_parquet2png(size=(128, 128), save_dir=None, crop_width=13,
+                        crop_height=10, padding=16, line_threshold=80, noise_threshold=20):
     WIDTH = 236
     HEIGHT = 137
     gc.enable()
     print("INPUT_PATH: ", INPUT_PATH)
-    for zip_file in TRAIN_ZIPFILES:
+    for zipidx, zip_file in tqdm(enumerate(TRAIN_ZIPFILES)):
         dir_name = zip_file.split(".")[0]
-        Path(TRAIN_DIR).mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(INPUT_PATH / zip_file) as existing_zip:
-            parquet_file = INPUT_PATH / "{}.parquet".format(dir_name)
+        Path(save_dir).mkdir(parents=True, exist_ok=True)
+        print("open parquet files...")
+        with zipfile.ZipFile(INPUT_PATH / "bengaliai-cv19" / zip_file) as existing_zip:
+            parquet_file = INPUT_PATH / "bengaliai-cv19" / "{}.parquet".format(dir_name)
             if os.path.exists(parquet_file) is False:
-                existing_zip.extractall(INPUT_PATH)
-            img_df = pd.read_parquet(parquet_file)
-            for idx in tqdm(range(len(img_df))):
-                img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
-                img = (img0 * (255.0 / img0.max())).astype(np.uint8)
-                img = crop_and_resize_img(img, SIZE, WIDTH, HEIGHT)
-                name = img_df.iloc[idx, 0]
-                cv2.imwrite(str(TRAIN_DIR / f"{name}.png"), img)
-            del img_df
-            gc.collect()
+                existing_zip.extractall(INPUT_PATH / "bengaliai-cv19")
+        img_df = pd.read_parquet(parquet_file)
+        print("save images...")
+        for idx in tqdm(range(len(img_df))):
+            img0 = 255 - img_df.iloc[idx, 1:].values.reshape(HEIGHT, WIDTH).astype(np.uint8)
+            img = (img0 * (255.0 / img0.max())).astype(np.uint8)
+            img = crop_and_resize_img(img, size, WIDTH, HEIGHT,
+                                      crop_width, crop_height, padding,
+                                      line_threshold, noise_threshold)
+            name = img_df.iloc[idx, 0]
+            cv2.imwrite(str(save_dir / f"{name}.png"), img)
+        del img_df
+        gc.collect()
+
+
+if __name__ == "__main__":
+    size = (236, 137)
+    save_dir = INPUT_PATH / "bengaliai-cv19" / "train_images_{}_{}".format(size[0], size[1])
+    convert_parquet2png(size, save_dir)
