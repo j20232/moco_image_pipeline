@@ -1,0 +1,33 @@
+seed: 1116
+dataset:
+  train: "moco_train_10.csv"
+  valid: "moco_valid_10.csv"
+params:
+  epochs: 30
+  batch_size: 128
+  test_batch_size: 128
+  es_rounds: 5
+  verbose: 1
+  num_workers: 8
+others:
+  name: null # "mixup" or "cutmix" or null
+  alpha: 0.2
+  use_grapheme: True
+model:
+  model_name: "resnet18"
+  pretrained: True
+optim:
+  name: "Adam"
+  params:
+    - lr: 0.01
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    - T_max: 10
+transform:
+  - name: RandomBlur
+    params:
+      prob: 0.2
+  - name: RandomLine
+    params:
+      prob: 0.5
