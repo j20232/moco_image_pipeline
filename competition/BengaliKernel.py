@@ -19,7 +19,6 @@ GRAPH = 168
 VOWEL = 11
 CONSO = 7
 ALL = 1295
-SIZE = 128
 WIDTH = 236
 HEIGHT = 137
 
@@ -55,13 +54,17 @@ class BengaliKernel():
         self.output_path = output_path
         self.cache_dir = output_path / "cache"
 
-    def crop(self, x):
+    def crop(self, x, size):
         x = (x * (255.0 / x.max())).astype(np.uint8)
-        x = crop_and_resize_img(x, SIZE, WIDTH, HEIGHT)
+        x = crop_and_resize_img(x, size, WIDTH, HEIGHT)
         x = cv2.cvtColor(x, cv2.COLOR_GRAY2BGR)
         return x
 
     def predict(self):
+        size = (128, 128)
+        if "dataset" in self.cfg["others"].keys():
+            if self.cfg["others"]["dataset"] == "train_images_236_137":
+                size = (WIDTH, HEIGHT)
         gc.enable()
         print("Reading input parquet files...")
         test_files = [self.input_path / "test_image_data_0.parquet",
@@ -81,7 +84,7 @@ class BengaliKernel():
                 img0 = img_df.iloc[idx * bs : (idx + 1) * bs, 1:].values
                 img0 = np.reshape(img0, (img0.shape[0], HEIGHT, WIDTH))
                 img0 = 255 - img0.astype(np.uint8)
-                img = [self.crop(im) for im in img0]
+                img = [self.crop(im, size) for im in img0]
                 imgs.extend(img)
                 paths.extend(name)
             tfms = [Normalizer(), transforms.ToTensor()]
