@@ -33,4 +33,7 @@ def crop_and_resize_img(img, size, max_width, max_height,
     len_x, len_y = xmax - xmin, ymax - ymin
     length = max(len_x, len_y) + padding
     out_img = np.pad(cropped_img, [((length - len_y) // 2,), ((length - len_x) // 2,)], mode="constant")
-    return cv2.resize(out_img, (size, size))
+    if type(size) == tuple:
+        return cv2.resize(out_img, size)
+    else:
+        return cv2.resize(out_img, (size, size))
