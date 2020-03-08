@@ -28,6 +28,6 @@ transform:
   - name: RandomBlur
     params:
       prob: 0.2
-  - name: RandomPerojective
+  - name: RandomProjective
     params:
       prob: 0.5
