@@ -21,9 +21,10 @@ optim:
   params:
     - lr: 0.001
 scheduler:
-  name: "CosineAnnealingLR"
+  name: "ReduceLROnPlateau"
   params:
-    - T_max: 10
+    - mode: "min"
+    - patience: 2
 transform:
   - name: RandomBlur
     params:
