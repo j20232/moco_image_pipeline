@@ -19,7 +19,6 @@ GRAPH = 168
 VOWEL = 11
 CONSO = 7
 ALL = 1295
-SIZE = 128
 WIDTH = 236
 HEIGHT = 137
 
@@ -65,7 +64,7 @@ class BengaliKernel():
         size = (128, 128)
         if "dataset" in self.cfg["others"].keys():
             if self.cfg["others"]["dataset"] == "train_images_236_137":
-                size = (236, 137)
+                size = (WIDTH, HEIGHT)
         gc.enable()
         print("Reading input parquet files...")
         test_files = [self.input_path / "test_image_data_0.parquet",
