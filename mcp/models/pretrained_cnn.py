@@ -12,6 +12,14 @@ import cnn_finetune
 import timm
 
 
+def dropout_replace(model):
+    for child_name, child in model.named_children():
+        if isinstance(child, nn.Dropout):
+            setattr(model, child_name, nn.Dropout(p=0.))
+        else:
+            dropout_replace(child)
+
+
 def get_official_names():
     return [
         # torchvision
@@ -30,8 +38,7 @@ def get_pretrained_names():
         "nasnetamobile",
         "dpn68", "dpn68b", "dpn92", "dpn98", "dpn131", "dpn107",
         "xception",
-        "senet154", "se_resnet50", "se_resnet101", "se_resnet152", "se_resnext50_32x4d", "se_resnext101_32x4d",
-        "pnasnet5large",
+        "senet154", "se_resnet50", "se_resnet101", "se_resnet152", "se_resnext50_32x4d", "se_resnext101_32x4d", "pnasnet5large",
     ]
 
 
@@ -56,7 +63,8 @@ def get_timm_names():
 
 class PretrainedCNN(nn.Module):
     def __init__(self, model_name,
-                 in_channels=3, out_dim=10, hdim=512, activation=F.leaky_relu,
+                 in_channels=3, out_dim=10, hdim=512,
+                 use_dropout=True, activation=F.leaky_relu,
                  use_bn=True, pretrained=False, kernel_size=3, stride=1, padding=1):
         super(PretrainedCNN, self).__init__()
         print("Architecture: ", model_name)
@@ -70,6 +78,8 @@ class PretrainedCNN(nn.Module):
         else:
             print("Not supported architecture")
             assert False
+        if not use_dropout:
+            dropout_replace(self.base_model)
 
         self.conv0 = nn.Conv2d(in_channels, 3,
                                kernel_size=kernel_size, stride=stride, padding=padding,
