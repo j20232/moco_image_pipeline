@@ -1,7 +1,7 @@
 seed: 1116
 dataset:
-  train: "moco_train_10.csv"
-  valid: "moco_valid_10.csv"
+  train: "moco_train_unseen.csv"
+  valid: "moco_valid_unseen.csv"
 params:
   epochs: 100
   batch_size: 64
