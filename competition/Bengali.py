@@ -20,7 +20,7 @@ sys.path.append(os.path.join(".."))
 import mcp.augmentation as aug
 from mcp.datasets import SimpleDataset
 from mcp.functions.metrics import accuracy
-from mcp.models import PretrainedCNN, FreezedSEResNeXt, KeroSEResNeXt
+from mcp.models import PretrainedCNN, FreezedSEResNeXt, KeroSEResNeXt, GhostNet
 from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 
 
@@ -107,6 +107,8 @@ class Bengali():
                                           **self.cfg["model"])
         elif model_name == "kero_seresnext":
             self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
+        elif model_name == "GhostNet":
+            self.model = GhostNet(in_channels=1, out_dim=out_dim)
         else:
             self.model = PretrainedCNN(in_channels=1, out_dim=out_dim,
                                        **self.cfg["model"])

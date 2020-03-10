@@ -12,7 +12,7 @@ from torchvision import transforms
 
 sys.path.append(os.path.join(".."))
 from mcp.datasets import SimpleDataset, SimpleDatasetNoCache
-from mcp.models import PretrainedCNN, KeroSEResNeXt
+from mcp.models import PretrainedCNN, KeroSEResNeXt, GhostNet
 from mcp.utils.convert import crop_and_resize_img
 
 GRAPH = 168
@@ -36,7 +36,8 @@ class BengaliKernel():
 
         if model_name == "kero_seresnext":
             self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
-
+        elif model_name == "GhostNet":
+            self.model = GhostNet(in_channels=1, out_dim=out_dim)
         else:
             self.model = PretrainedCNN(in_channels=1, out_dim=out_dim,
                                        **self.cfg["model"])
