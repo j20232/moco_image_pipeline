@@ -39,11 +39,6 @@ TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
                   "train_image_data_3.parquet.zip"]
 
 
-# dirty
-class Normalizer():
-    def __call__(self, img):
-        return (img.astype(np.float32) - 0.0692) / 0.2051
-
 # --------------------------- CutMix --------------------------------
 
 
@@ -113,7 +108,7 @@ class Bengali():
         elif model_name == "kero_seresnext":
             self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
         else:
-            self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
+            self.model = PretrainedCNN(in_channels=1, out_dim=out_dim,
                                        **self.cfg["model"])
 
         if "loss_weights" in self.cfg["params"].keys():
@@ -163,7 +158,6 @@ class Bengali():
             name, params = tfm_dict["name"], tfm_dict["params"]
             lib = aug if name in aug.modules else transforms
             tfms.append(getattr(lib, name)(**params))
-        tfms.append(Normalizer())
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train,

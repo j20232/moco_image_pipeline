@@ -23,12 +23,6 @@ WIDTH = 236
 HEIGHT = 137
 
 
-# dirty
-class Normalizer():
-    def __call__(self, img):
-        return (img.astype(np.float32) - 0.0692) / 0.2051
-
-
 class BengaliKernel():
 
     def __init__(self, competition, cfg, input_path, model_weight_path, output_path):
@@ -44,7 +38,7 @@ class BengaliKernel():
             self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
 
         else:
-            self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
+            self.model = PretrainedCNN(in_channels=1, out_dim=out_dim,
                                        **self.cfg["model"])
 
         self.model.load_state_dict(torch.load(str(model_weight_path), map_location=self.device))
@@ -57,7 +51,6 @@ class BengaliKernel():
     def crop(self, x, size):
         x = (x * (255.0 / x.max())).astype(np.uint8)
         x = crop_and_resize_img(x, size, WIDTH, HEIGHT)
-        x = cv2.cvtColor(x, cv2.COLOR_GRAY2BGR)
         return x
 
     def predict(self):
@@ -87,7 +80,7 @@ class BengaliKernel():
                 img = [self.crop(im, size) for im in img0]
                 imgs.extend(img)
                 paths.extend(name)
-            tfms = [Normalizer(), transforms.ToTensor()]
+            tfms = [transforms.ToTensor()]
             loader = DataLoader(SimpleDatasetNoCache(imgs, paths, transform=transforms.Compose(tfms)),
                                 batch_size=bs, shuffle=False, num_workers=self.cfg["params"]["num_workers"])
             names, graph, vowel, conso = self.predict_for_ensemble(loader)
