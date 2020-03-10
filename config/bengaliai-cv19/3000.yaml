@@ -24,7 +24,7 @@ optim:
 scheduler:
   name: "ReduceLROnPlateau"
   params:
-    - T_max: "min"
+    - mode: "min"
     - factor: 0.1
     - patience: 10
 transform:
