@@ -17,7 +17,7 @@ class SimpleDataset(Dataset):
     def __getitem__(self, i):
         x = cv2.imread(str(self.paths[i]), cv2.IMREAD_GRAYSCALE)
         # x = (255 - x).astype(np.float32) / 255.
-        x = x.astype(np.float64) / 255.
+        x = x.astype(np.float32) / 255.
         if self.transform:
             x = self.transform(x)
 
@@ -35,6 +35,6 @@ class SimpleDatasetNoCache(Dataset):
         return len(self.paths)
 
     def __getitem__(self, i):
-        x = self.imgs[i].astype(np.float64) / 255.
+        x = self.imgs[i].astype(np.float32) / 255.
         x = self.transform(x)
         return (x, str(self.paths[i]))
