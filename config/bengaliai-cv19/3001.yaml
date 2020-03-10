@@ -14,6 +14,7 @@ others:
   alpha: 0.3
   use_grapheme: False
   dataset: "train_images_236_137"
+  normalization: "nouse"
 model:
   model_name: "efficientnet_b4"
   pretrained: True

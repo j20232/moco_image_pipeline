@@ -44,15 +44,6 @@ transform:
   - name: ShiftScaleRotate
     params:
       prob: 0.2
-  - name: HueSaturationValue
-    params:
-      prob: 0.2
-  - name: RandomBrightnessContrast
-    params:
-      prob: 0.2
-  - name: RandomCLAHE
-    params:
-      prob: 0.2
   - name: CoarseDropout
     params:
       prob: 0.2

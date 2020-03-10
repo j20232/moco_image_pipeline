@@ -39,6 +39,19 @@ TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
                   "train_image_data_3.parquet.zip"]
 
 
+# dirty
+class Normalizer():
+    def __init__(self, mode):
+        self.mode = mode
+
+    def __call__(self, img):
+        if self.mode == "imagenet":
+            return (img.astype(np.float32) - 0.456) / 0.224
+        elif self.mode == "nouse":
+            return img.astype(np.float32)
+        else:
+            return (img.astype(np.float32) - 0.0692) / 0.2051
+
 # --------------------------- CutMix --------------------------------
 
 
@@ -160,6 +173,11 @@ class Bengali():
             name, params = tfm_dict["name"], tfm_dict["params"]
             lib = aug if name in aug.modules else transforms
             tfms.append(getattr(lib, name)(**params))
+        if "normalization" in self.cfg["others"].keys():
+            normalizer = Normalizer(self.cfg["others"]["normalization"])
+        else:
+            normalizer = Normalizer("default")
+        tfms.append(normalizer)
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train,

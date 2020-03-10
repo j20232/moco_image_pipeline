@@ -23,6 +23,20 @@ WIDTH = 236
 HEIGHT = 137
 
 
+# dirty
+class Normalizer():
+    def __init__(self, mode):
+        self.mode = mode
+
+    def __call__(self, img):
+        if self.mode == "imagenet":
+            return (img.astype(np.float32) - 0.456) / 0.224
+        elif self.mode == "nouse":
+            return img.astype(np.float32)
+        else:
+            return (img.astype(np.float32) - 0.0692) / 0.2051
+
+
 class BengaliKernel():
 
     def __init__(self, competition, cfg, input_path, model_weight_path, output_path):
@@ -81,7 +95,11 @@ class BengaliKernel():
                 img = [self.crop(im, size) for im in img0]
                 imgs.extend(img)
                 paths.extend(name)
-            tfms = [transforms.ToTensor()]
+            if "normalization" in self.cfg["others"].keys():
+                normalizer = Normalizer(self.cfg["others"]["normalization"])
+            else:
+                normalizer = Normalizer("default")
+            tfms = [normalizer, transforms.ToTensor()]
             loader = DataLoader(SimpleDatasetNoCache(imgs, paths, transform=transforms.Compose(tfms)),
                                 batch_size=bs, shuffle=False, num_workers=self.cfg["params"]["num_workers"])
             names, graph, vowel, conso = self.predict_for_ensemble(loader)

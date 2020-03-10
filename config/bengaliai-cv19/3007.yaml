@@ -1,7 +1,7 @@
 seed: 1116
 dataset:
-  train: "moco_debug_train.csv"
-  valid: "moco_debug_valid.csv"
+  train: "moco_train_unseen.csv"
+  valid: "moco_valid_unseen.csv"
 params:
   epochs: 100
   batch_size: 64
@@ -13,8 +13,8 @@ others:
   name: "cutmix" # "mixup" or "cutmix" or null
   alpha: 0.3
   use_grapheme: False
-  dataset: "train_images"
-  normalization: "nouse"
+  dataset: "train_images_236_137"
+  normalization: "default"
 model:
   model_name: "efficientnet_b4"
   pretrained: True
