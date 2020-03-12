@@ -1,0 +1,50 @@
+seed: 1116
+dataset:
+  train: "moco_train_10.csv"
+  valid: "moco_valid_10.csv"
+params:
+  epochs: 100
+  batch_size: 64
+  test_batch_size: 64
+  es_rounds: 60
+  verbose: 1
+  num_workers: 8
+others:
+  name: null # "mixup" or "cutmix" or null
+  alpha: 0.3
+  use_grapheme: True
+  dataset: "train_images_236_137"
+  normalization: "default"
+model:
+  model_name: "efficientnet_b4"
+  pretrained: True
+optim:
+  name: "Adam"
+  params:
+    - lr: 0.001
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    - T_max: 15
+transform:
+  - name: RandomBlur
+    params:
+      prob: 0.4
+  - name: MultiplicativeNoise
+    params:
+      prob: 0.4
+  - name: GridDistortion
+    params:
+      prob: 0.4
+  - name: ElasticTransform
+    params:
+      prob: 0.4
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.4
+  - name: RandomProjective
+    params:
+      prob: 0.3
+  - name: RandomPerspective
+    params:
+      prob: 0.3
