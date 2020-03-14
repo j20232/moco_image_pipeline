@@ -49,7 +49,7 @@ class BengaliKernel():
             out_dim += ALL
 
         if model_name == "kero_seresnext":
-            self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
+            self.model = KeroSEResNeXt(in_channels=1, out_dim=out_dim)
         elif model_name == "GhostNet":
             self.model = GhostNet(in_channels=1, out_dim=out_dim)
         else:
