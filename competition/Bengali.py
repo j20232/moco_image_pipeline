@@ -231,7 +231,6 @@ class Bengali():
             inputs, labels, lam = bengali_cutmix_or_mixup(inputs, labels,
                                                           is_cutmix=self.cfg["others"]["name"] == "cutmix",
                                                           use_all=self.use_grapheme)
-            inputs = self.train_loader.transform(inputs)
             self.optimizer.zero_grad()
             preds = self.model(inputs)
             if isinstance(preds, tuple) is False:
