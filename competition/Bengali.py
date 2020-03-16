@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import cv2
 import torch
 import torch.nn as nn
@@ -20,7 +21,7 @@ sys.path.append(os.path.join(".."))
 import mcp.augmentation as aug
 from mcp.datasets import SimpleDataset
 from mcp.functions.metrics import accuracy
-from mcp.models import PretrainedCNN, FreezedSEResNeXt, KeroSEResNeXt
+from mcp.models import PretrainedCNN, FreezedSEResNeXt, KeroSEResNeXt, GhostNet
 from mcp.utils import MLflowWriter, show_logs, crop_and_resize_img
 
 
@@ -41,8 +42,16 @@ TRAIN_ZIPFILES = ["train_image_data_0.parquet.zip",
 
 # dirty
 class Normalizer():
+    def __init__(self, mode):
+        self.mode = mode
+
     def __call__(self, img):
-        return (img.astype(np.float32) - 0.0692) / 0.2051
+        if self.mode == "imagenet":
+            return (img.astype(np.float32) - 0.456) / 0.224
+        elif self.mode == "nouse":
+            return img.astype(np.float32)
+        else:
+            return (img.astype(np.float32) - 0.0692) / 0.2051
 
 # --------------------------- CutMix --------------------------------
 
@@ -51,22 +60,17 @@ def rand_bbox(size, lam):
     W = size[2]
     H = size[3]
     cut_rat = np.sqrt(1. - lam)
-    cut_w = np.int(W * cut_rat)
     cut_h = np.int(H * cut_rat)
 
     # uniform
-    cx = np.random.randint(W)
-    cy = np.random.randint(H)
-
-    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    cy = np.random.randint(int(H / 5), int(4 * H / 5))
     bby1 = np.clip(cy - cut_h // 2, 0, H)
-    bbx2 = np.clip(cx + cut_w // 2, 0, W)
     bby2 = np.clip(cy + cut_h // 2, 0, H)
 
-    return bbx1, bby1, bbx2, bby2
+    return 0, bby1, W, bby2
 
 
-def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True, use_all=False):
+def bengali_cutmix_or_mixup(data, targets, is_cutmix=True, use_all=False):
     # cutmix if is_cutmix else mixup
     indices = torch.randperm(data.size(0))
     shuffled_data = data[indices]
@@ -74,10 +78,10 @@ def bengali_cutmix_or_mixup(data, targets, alpha=0.2, is_cutmix=True, use_all=Fa
     shuffled_targets1 = targets[:, 1][indices]
     shuffled_targets2 = targets[:, 2][indices]
 
-    lam = np.random.beta(alpha, alpha)
+    lam = np.random.uniform(0, 1.0)
     if is_cutmix:
         bbx1, bby1, bbx2, bby2 = rand_bbox(data.size(), lam)
-        data[:, :, bbx1:bbx2, bby1:bby2] = data[indices, :, bbx1:bbx2, bby1:bby2]
+        data[:, :, bbx1:bbx2, bby1:bby2] = shuffled_data[indices, :, bbx1:bbx2, bby1:bby2]
         lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (data.size()[-1] * data.size()[-2]))
     else:
         data = data * lam + shuffled_data * (1 - lam)
@@ -111,9 +115,11 @@ class Bengali():
             self.model = FreezedSEResNeXt(in_channels=3, out_dim=out_dim,
                                           **self.cfg["model"])
         elif model_name == "kero_seresnext":
-            self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
+            self.model = KeroSEResNeXt(in_channels=1, out_dim=out_dim)
+        elif model_name == "GhostNet":
+            self.model = GhostNet(in_channels=1, out_dim=out_dim)
         else:
-            self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
+            self.model = PretrainedCNN(in_channels=1, out_dim=out_dim,
                                        **self.cfg["model"])
 
         if "loss_weights" in self.cfg["params"].keys():
@@ -163,7 +169,11 @@ class Bengali():
             name, params = tfm_dict["name"], tfm_dict["params"]
             lib = aug if name in aug.modules else transforms
             tfms.append(getattr(lib, name)(**params))
-        tfms.append(Normalizer())
+        if "normalization" in self.cfg["others"].keys():
+            normalizer = Normalizer(self.cfg["others"]["normalization"])
+        else:
+            normalizer = Normalizer("default")
+        tfms.append(normalizer)
         tfms.append(transforms.ToTensor())
         return DataLoader(SimpleDataset(paths, labels, transform=transforms.Compose(tfms)),
                           batch_size=self.cfg["params"]["batch_size"], shuffle=is_train,
@@ -219,7 +229,6 @@ class Bengali():
         for inputs, labels, _ in tqdm(self.train_loader):
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             inputs, labels, lam = bengali_cutmix_or_mixup(inputs, labels,
-                                                          alpha=self.cfg["others"]["alpha"],
                                                           is_cutmix=self.cfg["others"]["name"] == "cutmix",
                                                           use_all=self.use_grapheme)
             self.optimizer.zero_grad()

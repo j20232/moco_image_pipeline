@@ -1,0 +1,47 @@
+seed: 1116
+dataset:
+  train: "moco_train2_10.csv"
+  valid: "moco_valid2_10.csv"
+params:
+  epochs: 50
+  batch_size: 128
+  test_batch_size: 128
+  es_rounds: 5
+  verbose: 1
+  num_workers: 8
+others:
+  name: "cutmix" # "mixup" or "cutmix" or null
+  use_grapheme: False
+model:
+  model_name: "se_resnext50_32x4d"
+  pretrained: True
+optim:
+  name: "Adam"
+  params:
+    - lr: 0.001
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    - T_max: 10
+transform:
+  - name: RandomBlur
+    params:
+      prob: 0.4
+  - name: GridDistortion
+    params:
+      prob: 0.4
+  - name: ElasticTransform
+    params:
+      prob: 0.4
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.4
+  - name: CoarseDropout
+    params:
+      prob: 0.2
+  - name: RandomAugMix
+    params:
+      prob: 0.2
+  - name: RandomMorphology
+    params:
+      prob: 0.2

@@ -12,7 +12,7 @@ from torchvision import transforms
 
 sys.path.append(os.path.join(".."))
 from mcp.datasets import SimpleDataset, SimpleDatasetNoCache
-from mcp.models import PretrainedCNN, KeroSEResNeXt
+from mcp.models import PretrainedCNN, KeroSEResNeXt, GhostNet
 from mcp.utils.convert import crop_and_resize_img
 
 GRAPH = 168
@@ -25,8 +25,16 @@ HEIGHT = 137
 
 # dirty
 class Normalizer():
+    def __init__(self, mode):
+        self.mode = mode
+
     def __call__(self, img):
-        return (img.astype(np.float32) - 0.0692) / 0.2051
+        if self.mode == "imagenet":
+            return (img.astype(np.float32) - 0.456) / 0.224
+        elif self.mode == "nouse":
+            return img.astype(np.float32)
+        else:
+            return (img.astype(np.float32) - 0.0692) / 0.2051
 
 
 class BengaliKernel():
@@ -41,10 +49,11 @@ class BengaliKernel():
             out_dim += ALL
 
         if model_name == "kero_seresnext":
-            self.model = KeroSEResNeXt(in_channels=3, out_dim=out_dim)
-
+            self.model = KeroSEResNeXt(in_channels=1, out_dim=out_dim)
+        elif model_name == "GhostNet":
+            self.model = GhostNet(in_channels=1, out_dim=out_dim)
         else:
-            self.model = PretrainedCNN(in_channels=3, out_dim=out_dim,
+            self.model = PretrainedCNN(in_channels=1, out_dim=out_dim,
                                        **self.cfg["model"])
 
         self.model.load_state_dict(torch.load(str(model_weight_path), map_location=self.device))
@@ -57,7 +66,6 @@ class BengaliKernel():
     def crop(self, x, size):
         x = (x * (255.0 / x.max())).astype(np.uint8)
         x = crop_and_resize_img(x, size, WIDTH, HEIGHT)
-        x = cv2.cvtColor(x, cv2.COLOR_GRAY2BGR)
         return x
 
     def predict(self):
@@ -87,7 +95,11 @@ class BengaliKernel():
                 img = [self.crop(im, size) for im in img0]
                 imgs.extend(img)
                 paths.extend(name)
-            tfms = [Normalizer(), transforms.ToTensor()]
+            if "normalization" in self.cfg["others"].keys():
+                normalizer = Normalizer(self.cfg["others"]["normalization"])
+            else:
+                normalizer = Normalizer("default")
+            tfms = [normalizer, transforms.ToTensor()]
             loader = DataLoader(SimpleDatasetNoCache(imgs, paths, transform=transforms.Compose(tfms)),
                                 batch_size=bs, shuffle=False, num_workers=self.cfg["params"]["num_workers"])
             names, graph, vowel, conso = self.predict_for_ensemble(loader)

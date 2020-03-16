@@ -1,9 +1,9 @@
 seed: 1116
 dataset:
-  train: "moco_train_10.csv"
-  valid: "moco_valid_10.csv"
+  train: "moco_train2_10.csv"
+  valid: "moco_valid2_10.csv"
 params:
-  epochs: 30
+  epochs: 50
   batch_size: 128
   test_batch_size: 128
   es_rounds: 5
@@ -14,12 +14,12 @@ others:
   alpha: 0.2
   use_grapheme: True
 model:
-  model_name: "resnet18"
+  model_name: "kero_seresnext"
   pretrained: True
 optim:
   name: "Adam"
   params:
-    - lr: 0.01
+    - lr: 0.001
 scheduler:
   name: "CosineAnnealingLR"
   params:
@@ -27,7 +27,16 @@ scheduler:
 transform:
   - name: RandomBlur
     params:
-      prob: 0.2
-  - name: RandomProjective
+      prob: 0.4
+  - name: MultiplicativeNoise
     params:
-      prob: 0.5
+      prob: 0.4
+  - name: GridDistortion
+    params:
+      prob: 0.4
+  - name: ElasticTransform
+    params:
+      prob: 0.4
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.4

@@ -11,7 +11,7 @@ def get_random_kernel(min_ker, max_ker):
 
 
 class RandomMorphology():
-    def __init__(self, prob=0.4, min_ker=1, max_ker=5):
+    def __init__(self, prob=0.4, min_ker=1, max_ker=2):
         self.prob = np.clip(prob, 0.0, 1.0)
         self.min_ker = min_ker
         self.max_ker = max_ker

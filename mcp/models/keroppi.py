@@ -5,14 +5,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-IMAGE_RGB_MEAN = [0.485, 0.456, 0.406]
-IMAGE_RGB_STD = [0.229, 0.224, 0.225]
-
-
 class KeroSEResNeXt(nn.Module):
-    def __init__(self, in_channels=3, out_dim=10):
+    def __init__(self, in_channels=1, out_dim=10):
         super(KeroSEResNeXt, self).__init__()
-        self.rgb = RGB()
 
         self.block0 = nn.Sequential(
             nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3, bias=False),
@@ -41,11 +36,11 @@ class KeroSEResNeXt(nn.Module):
             * [SENextBottleneckBlock(2048, 1024, 2048, stride=1, is_shortcut=False, excite_size=8) for i in range(1, 3)],
         )
 
+        self.dropout = nn.Dropout(p=0.2)
         self.logit = nn.Linear(2048, out_dim)
 
     def forward(self, x):
         batch_size = len(x)
-        x = self.rgb(x)
 
         x = self.block0(x)
         x = self.block1(x)
@@ -53,20 +48,9 @@ class KeroSEResNeXt(nn.Module):
         x = self.block3(x)
         x = self.block4(x)
         x = F.adaptive_avg_pool2d(x, 1).reshape(batch_size, -1)
+        x = self.dropout(x)
         logit = self.logit(x)
         return logit
-
-
-class RGB(nn.Module):
-    def __init__(self):
-        super(RGB, self).__init__()
-        self.register_buffer("mean", torch.zeros(1, 3, 1, 1))
-        self.register_buffer("std", torch.zeros(1, 3, 1, 1))
-        self.mean.data = torch.FloatTensor(IMAGE_RGB_MEAN).view(self.mean.shape)
-        self.std.data = torch.FloatTensor(IMAGE_RGB_STD).view(self.std.shape)
-
-    def forward(self, x):
-        return (x - self.mean) / self.std
 
 
 class SENextBottleneckBlock(nn.Module):

@@ -1,20 +1,21 @@
 seed: 1116
 dataset:
-  train: "moco_debug_train.csv"
-  valid: "moco_debug_valid.csv"
+  train: "moco_train_10.csv"
+  valid: "moco_valid_10.csv"
 params:
-  epochs: 2
-  batch_size: 4
-  test_batch_size: 4
-  es_rounds: 10
+  epochs: 100
+  batch_size: 64
+  test_batch_size: 64
+  es_rounds: 60
   verbose: 1
-  num_workers: 2
+  num_workers: 8
 others:
   name: null # "mixup" or "cutmix" or null
   alpha: 0.2
   use_grapheme: True
+  normalization: "default"
 model:
-  model_name: "resnet18"
+  model_name: "se_resnext50_32x4d"
   pretrained: True
 optim:
   name: "Adam"
@@ -24,32 +25,27 @@ scheduler:
   name: "ReduceLROnPlateau"
   params:
     - mode: "min"
-    - patience: 2
+    - factor: 0.1
+    - patience: 10
 transform:
   - name: RandomBlur
     params:
-      prob: 0.2
-  - name: GaussNoise
-    params:
-      prob: 0.2
+      prob: 0.3
   - name: MultiplicativeNoise
     params:
-      prob: 0.2
+      prob: 0.3
   - name: GridDistortion
     params:
-      prob: 0.2
+      prob: 0.3
   - name: ElasticTransform
     params:
-      prob: 0.2
+      prob: 0.3
   - name: ShiftScaleRotate
     params:
-      prob: 0.2
-  - name: CoarseDropout
+      prob: 0.3
+  - name: RandomProjective
     params:
-      prob: 0.2
-  - name: RandomAugMix
+      prob: 0.3
+  - name: RandomPerspective
     params:
-      prob: 0.2
-  - name: RandomMorphology
-    params:
-      prob: 0.2
+      prob: 0.3

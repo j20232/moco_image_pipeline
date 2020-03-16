@@ -1,0 +1,46 @@
+seed: 1116
+dataset:
+  train: "moco_debug_train.csv"
+  valid: "moco_debug_valid.csv"
+params:
+  epochs: 100
+  batch_size: 64
+  test_batch_size: 64
+  es_rounds: 60
+  verbose: 1
+  num_workers: 8
+others:
+  name: "cutmix" # "mixup" or "cutmix" or null
+  alpha: 0.3
+  use_grapheme: False
+  dataset: "train_images"
+  normalization: "nouse"
+model:
+  model_name: "efficientnet_b4"
+  pretrained: True
+optim:
+  name: "Adam"
+  params:
+    - lr: 0.01
+scheduler:
+  name: "ReduceLROnPlateau"
+  params:
+    - mode: "min"
+    - factor: 0.1
+    - patience: 10
+transform:
+  - name: RandomBlur
+    params:
+      prob: 0.4
+  - name: MultiplicativeNoise
+    params:
+      prob: 0.4
+  - name: GridDistortion
+    params:
+      prob: 0.4
+  - name: ElasticTransform
+    params:
+      prob: 0.4
+  - name: ShiftScaleRotate
+    params:
+      prob: 0.4

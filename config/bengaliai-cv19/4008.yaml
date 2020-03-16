@@ -1,18 +1,17 @@
 seed: 1116
 dataset:
-  train: "moco_debug_train.csv"
-  valid: "moco_debug_valid.csv"
+  train: "moco_train_10.csv"
+  valid: "moco_valid_10.csv"
 params:
   epochs: 2
-  batch_size: 4
+  batch_size: 16
   test_batch_size: 4
   es_rounds: 10
   verbose: 1
   num_workers: 2
 others:
-  name: null # "mixup" or "cutmix" or null
-  alpha: 0.2
-  use_grapheme: True
+  name: "cutmix" # "mixup" or "cutmix" or null
+  use_grapheme: False
 model:
   model_name: "resnet18"
   pretrained: True
@@ -27,12 +26,6 @@ scheduler:
     - patience: 2
 transform:
   - name: RandomBlur
-    params:
-      prob: 0.2
-  - name: GaussNoise
-    params:
-      prob: 0.2
-  - name: MultiplicativeNoise
     params:
       prob: 0.2
   - name: GridDistortion
